@@ -129,7 +129,7 @@ class DetectAudioActivity:
         # Histogram of daily gap activity
         plt.figure(figsize = (16,12))
         plt.subplot(121)
-        plt.hist(self.daily_gap, bins = range(0, min(int(max(daily_gap))+20, max_gap_sec), bin_size))
+        plt.hist(self.daily_gap, bins = range(0, min(int(max(self.daily_gap))+20, max_gap_sec), bin_size))
         plt.title('Histogram of silence duration for ' + self.start_str[9:])
         plt.xlabel('Silence Duration(second)')
         plt.ylabel('Count')
