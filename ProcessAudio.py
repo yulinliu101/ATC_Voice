@@ -99,8 +99,14 @@ class DetectAudioActivity:
             for audio_file in self.daily_file_list:
                 print('Processing %s, elapsed time %.2f'%(audio_file, time.time() - st))
                 self.audio_file_date.append(audio_file)
-                sound = AudioSegment.from_mp3(self.path + audio_file)
-                si_duration, active_rate = detect_silence(sound, pwr_thres, min_sil_sec)
+                try:
+                    sound = AudioSegment.from_mp3(self.path + audio_file)
+                    si_duration, active_rate = detect_silence(sound, pwr_thres, min_sil_sec)
+                except:
+                    print('%s skipped'%audio_file)
+                    si_duration = []
+                    active_rate = -1
+                
                 self.si_duration_agg.append(si_duration.tolist())
                 self.active_rates.append(active_rate)
             self.daily_gap = list(chain.from_iterable(self.si_duration_agg))
