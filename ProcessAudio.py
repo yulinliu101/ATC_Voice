@@ -38,14 +38,14 @@ def detect_silence(sound, power_threshold, min_silence_s):
     
     # Get array of sound
     sample_rate = sound.frame_rate
-    sound_track = sound.get_array_of_samples()
+    sound_track = np.array(sound.get_array_of_samples(), dtype = np.int16)/32678
     sound_length = sound.duration_seconds
     
     # Plot specgram and get pxx, freq, bins, im
     # freqs, time_ins, Pxx = scipy.signal.spectrogram(np.array(sound_track), fs = sample_rate, window = 'hann', nperseg = 2048, noverlap = 2048/8, detrend = 'constant', scaling = 'density', mode = 'psd')
     freqs, time_ins, Pxx = scipy.signal.stft(sound_track, fs = sample_rate, nperseg = 2048, noverlap = 2048/8,\
                                  window = 'hann', return_onesided = True, padded = False, boundary = None, detrend = 'constant')
-    Pxx = (np.abs(Pxx)/32678)**2 # PSD V**2
+    Pxx = (np.abs(Pxx))**2 # PSD V**2
     # Pxx, _, bins, _ = plt.specgram(sound_track, scale = 'linear', Fs = sample_rate, NFFT = 1024, noverlap = 1024/4)
     # plt.clf()
     # plt.close('all')
@@ -89,7 +89,8 @@ class DetectAudioActivity:
         except:
             print('No sample audio loaded')
             pass
-    def DetectActivity(self, anal_source = 'daily', pwr_thres = 1, min_sil_sec = 3):
+
+    def DetectActivity(self, anal_source = 'daily', pwr_thres = 0.005, min_sil_sec = 3):
         self.si_duration_agg = []
         self.active_rates = []
         self.audio_file_date = []
@@ -97,14 +98,14 @@ class DetectAudioActivity:
             print('Detect audio activity on the daily level')
             st = time.time()
             for audio_file in self.daily_file_list:
-                print('Processing %s, elapsed time %.2f'%(audio_file, time.time() - st))
+                print('Processing %s, elapsed time %.1f'%(audio_file, time.time() - st))
                 self.audio_file_date.append(audio_file)
                 try:
                     sound = AudioSegment.from_mp3(self.path + audio_file)
                     si_duration, active_rate = detect_silence(sound, pwr_thres, min_sil_sec)
                 except:
                     print('%s skipped'%audio_file)
-                    si_duration = []
+                    si_duration = np.array([])
                     active_rate = -1
                 
                 self.si_duration_agg.append(si_duration.tolist())
@@ -134,17 +135,17 @@ class DetectAudioActivity:
     def Plot_Activity_Rate(self, max_gap_sec = 180, bin_size = 10):
         warnings.warn('This function currently only works well for results based on anal_source = \'daily\'')
         # Histogram of daily gap activity
-        plt.figure(figsize = (16,12))
+        plt.figure(figsize = (16,6))
         plt.subplot(121)
         plt.hist(self.daily_gap, bins = range(0, min(int(max(self.daily_gap))+20, max_gap_sec), bin_size))
         plt.title('Histogram of silence duration for ' + self.start_str[9:])
         plt.xlabel('Silence Duration(second)')
         plt.ylabel('Count')
-        plt.ylim(0,1200)
+        plt.ylim(0,1600)
 
         # Scatter plot of active rates
         plt.subplot(122)
-        plt.plot(np.linspace(0,24,len(self.active_rates)), self.active_rates)
+        plt.plot(np.linspace(0,24,len(self.active_rates)), self.active_rates, '*--')
         plt.title('Active Rate of ' + self.start_str[9:])
         plt.xticks(range(25), range(0,25))
         plt.xlabel('UTC Hour')
@@ -154,10 +155,10 @@ class DetectAudioActivity:
 
     def VisualizeSampleVoice(self, start_sec = 0, end_sec = 300, NFFT = 2048, overlap_rate = 8, sum_psd = False):
         if self.combine_sample:
-            sound_track = np.array(self.sample_audio.get_array_of_samples())/32678
+            sound_track = np.array(self.sample_audio.get_array_of_samples(), dtype = np.int16)/32678
         else:
             print('plot audio clip for %s'%self.sample_audio_file_list[0])
-            sound_track = np.array(self.sample_audio[0].get_array_of_samples())/32678
+            sound_track = np.array(self.sample_audio[0].get_array_of_samples(), dtype = np.int16)/32678
         if end_sec - start_sec > 300:
             warnings.warn('The audio clip to visualize is longer than 300 seconds, which might induce memory overflow. Try a shorter clip')
         t = np.linspace(start_sec, end_sec, (end_sec - start_sec) * self.sample_rate)
@@ -187,7 +188,7 @@ class DetectAudioActivity:
         # # freqs: 0 Hz -- sample_rate/2 (i * sample_rate/NFFT, i from 0 to NFFT/2)
         # # time_ins: interval is (NFFT-noverlap)/sample_rate
         cb = plt.colorbar(im, orientation='horizontal')
-        cb.set_label('Audio Cross Spectral Density (dB/Hz)')
+        cb.set_label('Cross Spectral Density (dB/Hz)')
         ax2.set_xlabel('Elapsed time since audio starts/sec')
         ax2.set_ylabel('Frequency (Hz)')
 
