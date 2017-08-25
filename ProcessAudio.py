@@ -63,6 +63,7 @@ class DetectAudioActivity:
         self.start_str = Airport + '-' + File_Type + '-' + Anal_Date
         print('Analyzed File Type and Date: %s'%self.start_str)
         self.daily_file_list = [filename for filename in os.listdir(self.path) if filename.startswith(self.start_str)]
+        self.daily_file_list.sort()
         self.sample_audio_file_list = []
         self.combine_sample = combine_sample
         if self.combine_sample:
