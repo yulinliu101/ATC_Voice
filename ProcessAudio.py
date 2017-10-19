@@ -16,6 +16,20 @@ import scipy
 import warnings
 import time
 
+def stft(sound_track, sample_rate, nperseg, overlap_rate, nfft, window_fun = 'hann', power_mode = 'PS'):
+    freqs, time_ins, Pxx = scipy.signal.stft(sound_track, fs = sample_rate, nperseg = nperseg, noverlap = nperseg/overlap_rate, nfft = nfft, \
+                                 window = window_fun, return_onesided = True, padded = False, boundary = None, detrend = 'constant')
+    if power_mode == 'PS':
+        Pxx = (np.abs(Pxx))**2 # Power Spectrum V**2
+    elif power_mode == 'PSD':
+        Pxx = (np.abs(Pxx))**2/nfft # Power Spectrum Density V**2/Hz
+    elif power_mode == 'magnitude':
+        Pxx = np.abs(Pxx)
+    else:
+        raise ValueError('power_mode can only be "PS", "PSD", or "magnitude"')
+    return freqs, time_ins, Pxx
+
+
 # Useful Functions
 def combine_to_range(power, power_threshold, sec_to_bin, min_silence_s):
     # power is the matrix produced by specgram
@@ -43,9 +57,9 @@ def detect_silence(sound, power_threshold, min_silence_s):
     
     # Plot specgram and get pxx, freq, bins, im
     # freqs, time_ins, Pxx = scipy.signal.spectrogram(np.array(sound_track), fs = sample_rate, window = 'hann', nperseg = 2048, noverlap = 2048/8, detrend = 'constant', scaling = 'density', mode = 'psd')
-    freqs, time_ins, Pxx = scipy.signal.stft(sound_track, fs = sample_rate, nperseg = 2048, noverlap = 2048/8,\
-                                 window = 'hann', return_onesided = True, padded = False, boundary = None, detrend = 'constant')
-    Pxx = (np.abs(Pxx))**2 # PSD V**2
+    freqs, time_ins, Pxx = stft(sound_track, sample_rate = sample_rate, nperseg = 512, overlap_rate = 4, nfft = 1024, \
+                                 window_fun = 'hann', power_mode = 'PSD')
+    # Power Spectrum Density V**2/Hz
     # Pxx, _, bins, _ = plt.specgram(sound_track, scale = 'linear', Fs = sample_rate, NFFT = 1024, noverlap = 1024/4)
     # plt.clf()
     # plt.close('all')
@@ -57,7 +71,12 @@ def detect_silence(sound, power_threshold, min_silence_s):
     return si_time_duration, active_rate
 
 class DetectAudioActivity:
-    def __init__(self, Airport = 'KJFK', root_dir = "/AudioDownload/Tower/", File_Type = 'Twr', Anal_Date = 'Apr-19-2017', Anal_Sample_Time = ['1800Z', '1830Z'], combine_sample = False):
+    def __init__(self, Airport = 'KJFK', 
+                 root_dir = "/AudioDownload/Tower/", 
+                 File_Type = 'Twr', 
+                 Anal_Date = 'Apr-19-2017', 
+                 Anal_Sample_Time = ['1800Z', '1830Z'], 
+                 combine_sample = False):
         # File_Type: 'Twr', 'ROBER', 'Final', 'CAMRN'
         self.path = os.getcwd() + root_dir
         self.start_str = Airport + '-' + File_Type + '-' + Anal_Date
@@ -167,11 +186,16 @@ class DetectAudioActivity:
         ax1.plot(t, sound_track[int(start_sec * self.sample_rate): int(end_sec * self.sample_rate)])
         ax1.set_xlabel('Elapsed time since audio starts/sec')
         ax1.set_ylabel('Audio/ Volt')
+        ax1.set_ylim(-1, 1)
 
         ax2 = plt.subplot(312, sharex = ax1)
-        freqs, time_ins, Pxx = scipy.signal.spectrogram((sound_track[int(start_sec * self.sample_rate): int(end_sec * self.sample_rate)]), 
-                                                        fs = self.sample_rate, window = 'hann', nperseg = NFFT, noverlap = NFFT/overlap_rate, 
-                                                        detrend = 'constant', scaling = 'density', mode = 'psd')
+        # freqs, time_ins, Pxx = scipy.signal.spectrogram((sound_track[int(start_sec * self.sample_rate): int(end_sec * self.sample_rate)]), 
+        #                                                 fs = self.sample_rate, window = 'hann', nperseg = NFFT, noverlap = NFFT/overlap_rate, 
+        #                                                 detrend = 'constant', scaling = 'density', mode = 'psd')
+
+        freqs, time_ins, Pxx = stft((sound_track[int(start_sec * self.sample_rate): int(end_sec * self.sample_rate)]), \
+                                    sample_rate = self.sample_rate, window_fun = 'hann', nperseg = 512, overlap_rate = 4, nfft = NFFT,\
+                                    power_mode = 'PSD')
 
         Zxx = np.flipud(10. * np.log10(Pxx))
 
