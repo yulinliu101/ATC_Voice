@@ -58,7 +58,7 @@ class AudioSegmentation:
         currentET = self.min_wind
         currentSize = currentET - currentST
         # initialization
-        turnPt = __helperSeg__(self.features, startFrame = currentST, endFrame = currentET, incFrame = self.mov_frame, mixture = self.mixture, Lambda = self.Lambda)
+        turnPt = self.__helperSeg__(self.features, startFrame = currentST, endFrame = currentET, incFrame = self.mov_frame, mixture = self.mixture, Lambda = self.Lambda)
         if turnPt != -1:
             currentST = turnPt
             currentET = turnPt + self.min_wind
@@ -71,10 +71,10 @@ class AudioSegmentation:
                 currentET += self.inc_wind
                 if currentET > self.features.shape[1]:
                     currentET = self.features.shape[1]
-                    turnPt = __helperSeg__(self.features, startFrame = currentST, endFrame = currentET, incFrame = self.mov_frame, mixture = self.mixture, Lambda = self.Lambda)
+                    turnPt = self.__helperSeg__(self.features, startFrame = currentST, endFrame = currentET, incFrame = self.mov_frame, mixture = self.mixture, Lambda = self.Lambda)
                     break
                 currentSize = currentET - currentST
-                turnPt = __helperSeg__(self.features, startFrame = currentST, endFrame = currentET, incFrame = self.mov_frame, mixture = self.mixture, Lambda = self.Lambda)
+                turnPt = self.__helperSeg__(self.features, startFrame = currentST, endFrame = currentET, incFrame = self.mov_frame, mixture = self.mixture, Lambda = self.Lambda)
             
             if currentSize > self.max_wind:
                 currentST = currentST + self.max_wind - self.min_wind
