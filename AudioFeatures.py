@@ -166,10 +166,11 @@ class AudioFeatures:
             tmax = self.time_ins.max()
         # tmin, tmax = self.time_ins.min(), self.time_ins.max()
         if item == 'signal':
-            print('only plot the first 200 seconds')
             plt.title('Signal')
-            end_sec = 200
-            start_sec = 0
+            end_sec = tmax
+            start_sec = tmin
+            if end_sec - start_sec > 300:
+                raise OverflowError("too many blocks assigned, please reduce the number of samples plotted")
             t = np.linspace(start_sec, end_sec, (end_sec - start_sec) * self.sample_rate)
             plt.plot(t, self.sound_track[int(start_sec * self.sample_rate): int(end_sec * self.sample_rate)])
             plt.ylim(-1,1)
