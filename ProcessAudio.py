@@ -57,7 +57,7 @@ def combine_to_range(power, power_threshold, sec_to_bin, min_silence_s):
     silence_time = sum(silence_time_duration)
     return silence_time_range, silence_time_duration, silence_time
 
-def detect_silence(sound, power_threshold, min_silence_s):
+def detect_silence(sound, power_threshold, min_silence_s,mvg_point):
     # power_threshold is a value that greater than 0. Usually is 1
     # min_silence_s is the minimum duration of a silence, in seconds. Usually is 3.
     
@@ -83,8 +83,8 @@ def detect_silence(sound, power_threshold, min_silence_s):
     Lxx = Zxx[Zxx.shape[0]//2:, :Zxx.shape[1]]
 
     # Apply moving average filter
-    hxxf = Movingavg(Hxx.sum(axis=0), n = 5)
-    lxxf = Movingavg(Lxx.sum(axis = 0), n = 5)
+    hxxf = Movingavg(Hxx.sum(axis=0), n = mvg_point)
+    lxxf = Movingavg(Lxx.sum(axis = 0), n = mvg_point)
     Fxx = lxxf - np.mean(hxxf)
     
     sec_to_bin = time_ins.shape[0] / sound_length
