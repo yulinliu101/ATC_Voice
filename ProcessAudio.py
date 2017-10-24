@@ -31,12 +31,23 @@ def stft(sound_track, sample_rate, nperseg, overlap_rate, nfft, window_fun = 'ha
 
 
 # Useful Functions
+def Movingavg(x, n):
+    padarray = np.lib.pad(x, n//2, 'edge')
+    csum = np.cumsum(np.insert(padarray, 0, 0))
+    y = (csum[n:] - csum[:-n])/n
+    return y
+
+def preEmphasis(sound_track, alpha = 0.97):
+    emphasized_signal = np.append(sound_track[0], sound_track[1:] - alpha * sound_track[:-1])
+    return emphasized_signal
+
 def combine_to_range(power, power_threshold, sec_to_bin, min_silence_s):
     # power is the matrix produced by specgram
+    # power_threshold usually is 0
     # sec_to_bin is usally bin.shape[0] / audio length(ms)/1000
     
     idx_range = []
-    for k, g in groupby(enumerate(np.where(power.sum(axis = 0) <= power_threshold)[0]), lambda (i,x):i-x):
+    for k, g in groupby(enumerate(np.where(power <= power_threshold)[0]), lambda (i,x):i-x):
         group = map(itemgetter(1), g)
         idx_range.append([group[0], group[-1]])
     idx_range = np.array(idx_range)
@@ -57,15 +68,27 @@ def detect_silence(sound, power_threshold, min_silence_s):
     
     # Plot specgram and get pxx, freq, bins, im
     # freqs, time_ins, Pxx = scipy.signal.spectrogram(np.array(sound_track), fs = sample_rate, window = 'hann', nperseg = 2048, noverlap = 2048/8, detrend = 'constant', scaling = 'density', mode = 'psd')
-    freqs, time_ins, Pxx = stft(sound_track, sample_rate = sample_rate, nperseg = 512, overlap_rate = 4, nfft = 1024, \
+    freqs, time_ins, Pxx = stft(preEmphasis(sound_track), sample_rate = sample_rate, nperseg = 512, overlap_rate = 4, nfft = 1024, \
                                  window_fun = 'hann', power_mode = 'PSD')
+    
+    Pxx += Pxx.mean()
+    Zxx = np.flipud(10. * np.log10(Pxx))
     # Power Spectrum Density V**2/Hz
     # Pxx, _, bins, _ = plt.specgram(sound_track, scale = 'linear', Fs = sample_rate, NFFT = 1024, noverlap = 1024/4)
     # plt.clf()
     # plt.close('all')
 
+    # High frequency band & Low frequency band
+    Hxx = Zxx[0:Zxx.shape[0]//2, :Zxx.shape[1]]
+    Lxx = Zxx[Zxx.shape[0]//2:, :Zxx.shape[1]]
+
+    # Apply moving average filter
+    hxxf = Movingavg(Hxx.sum(axis=0), n = 5)
+    lxxf = Movingavg(Lxx.sum(axis = 0), n = 5)
+    Fxx = lxxf - np.mean(hxxf)
+    
     sec_to_bin = time_ins.shape[0] / sound_length
-    out = combine_to_range(Pxx,power_threshold,sec_to_bin, min_silence_s)
+    out = combine_to_range(Fxx,power_threshold,sec_to_bin, min_silence_s)
     si_time_duration = out[1]
     active_rate = 1 - out[2] / sound_length
     return si_time_duration, active_rate
