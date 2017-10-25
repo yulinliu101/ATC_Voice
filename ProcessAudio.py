@@ -92,8 +92,11 @@ def detect_silence(sound, power_threshold, min_silence_s,mvg_point):
     out = combine_to_range(Fxx,power_threshold,sec_to_bin, min_silence_s)
     si_time_duration = out[1]
     active_rate = 1 - out[2] / sound_length
-    Pxx_act = Pxx[np.ix_(range(Pxx.shape[0]), out[3])] # out[3][idx_diarz]
-    return si_time_duration, active_rate, Pxx_act
+    idx_act = out[3]
+    Pxx_act = Pxx[np.ix_(range(Pxx.shape[0]), idx_act)]
+    # idx_act is the index vector that has voice activity, when input the diarz_segment index "idx_act[idx_diarz]",
+    # Pxx_act is the spectral matrix that has already remove the silence part.
+    return si_time_duration, active_rate, idx_act, Pxx_act
 
 class DetectAudioActivity:
     def __init__(self, Airport = 'KJFK', 
