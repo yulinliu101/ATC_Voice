@@ -47,6 +47,7 @@ def combine_to_range(power, power_threshold, sec_to_bin, min_silence_s):
     # sec_to_bin is usally bin.shape[0] / audio length(ms)/1000
     
     idx_range = []
+    idx_act = np.where(power > power_threshold)[0])
     for k, g in groupby(enumerate(np.where(power <= power_threshold)[0]), lambda (i,x):i-x):
         group = map(itemgetter(1), g)
         idx_range.append([group[0], group[-1]])
@@ -55,7 +56,7 @@ def combine_to_range(power, power_threshold, sec_to_bin, min_silence_s):
                                               - idx_range[:,0])/sec_to_bin) > min_silence_s), :][0]/sec_to_bin
     silence_time_duration = silence_time_range[:,1] - silence_time_range[:,0]
     silence_time = sum(silence_time_duration)
-    return silence_time_range, silence_time_duration, silence_time
+    return silence_time_range, silence_time_duration, silence_time, idx_act
 
 def detect_silence(sound, power_threshold, min_silence_s,mvg_point):
     # power_threshold is a value that greater than 0. Usually is 1
@@ -91,7 +92,8 @@ def detect_silence(sound, power_threshold, min_silence_s,mvg_point):
     out = combine_to_range(Fxx,power_threshold,sec_to_bin, min_silence_s)
     si_time_duration = out[1]
     active_rate = 1 - out[2] / sound_length
-    return si_time_duration, active_rate
+    Pxx_act = Pxx[np.ix_(range(Pxx.shape[0]), out[3])] # out[3][idx_diarz]
+    return si_time_duration, active_rate, Pxx_act
 
 class DetectAudioActivity:
     def __init__(self, Airport = 'KJFK', 
