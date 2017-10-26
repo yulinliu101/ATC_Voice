@@ -1,6 +1,7 @@
 from __future__ import division
 import numpy as np
 import scipy
+import scipy.signal
 import matplotlib.pyplot as plt
 
 def Hz2Mel(freq):
@@ -14,8 +15,7 @@ def Mel2Hz(mel):
 
 class AudioFeatures:
     def __init__(self, 
-                 sound_track, 
-                 sample_rate, 
+                 AudioLoad,
                  nperseg, 
                  overlap_rate, 
                  nfft, 
@@ -26,8 +26,8 @@ class AudioFeatures:
                  fbank_lowfreq = 0,
                  fbank_hfreq = None):
 
-        self.sound_track = sound_track
-        self.sample_rate = sample_rate
+        self.sound_track = AudioLoad.sound_track
+        self.sample_rate = AudioLoad.sample_rate
         self.nperseg = nperseg
         self.overlap_rate = overlap_rate
         self.nfft = nfft
