@@ -28,16 +28,21 @@ class AudioActDet:
         # sec_to_bin is usally bin.shape[0] / audio length(ms)/1000
         
         idx_range = []
-        idx_act = np.where(power > power_threshold)[0]
         for k, g in groupby(enumerate(np.where(power <= power_threshold)[0]), lambda (i,x):i-x):
             group = map(itemgetter(1), g)
             idx_range.append([group[0], group[-1]])
         idx_range = np.array(idx_range)
-        silence_time_range = idx_range[np.where(((idx_range[:,1] 
-                                                  - idx_range[:,0])/sec_to_bin) > silence_sec), :][0]/sec_to_bin
+        silence_time_range = idx_range[np.where((idx_range[:,1] 
+                                                  - idx_range[:,0]) > silence_sec * sec_to_bin), :][0]
+        
+        idx_nums = ()
+        for i in silence_time_range:
+            idx_nums = np.append(idx_nums,range(int(i[0]), int(i[1]+1)))
+        idx_act = list(set(range(time_ins.shape[0])).difference(set(idx_nums))) 
+        
         silence_time_duration = silence_time_range[:,1] - silence_time_range[:,0]
         silence_time = sum(silence_time_duration)
-        return silence_time_range, silence_time_duration, silence_time, idx_act
+        return silence_time_range, silence_time, idx_act
 
     def detect_silence(self, power_threshold = 0, silence_sec = 0.5, mvg_point = 5):
         # power_threshold is a value that greater than 0. Usually is 1
@@ -70,10 +75,10 @@ class AudioActDet:
         
         sec_to_bin = time_ins.shape[0] / sound_length
         out = self.combine_to_range(Fxx,power_threshold,sec_to_bin, silence_sec)
-        si_time_duration = out[1]
-        active_rate = 1 - out[2] / sound_length
-        idx_act = out[3]
+        #si_time_duration = out[1]
+        active_rate = 1 - out[1] / sound_length
+        idx_act = out[2]
         Pxx_act = Pxx[:, idx_act]
         # idx_act is the index vector that has voice activity, when input the diarz_segment index "idx_act[idx_diarz]",
         # Pxx_act is the spectral matrix that has already remove the silence part.
-        return si_time_duration, active_rate, idx_act, Pxx_act
+        return active_rate, idx_act, Pxx_act
