@@ -32,17 +32,18 @@ class AudioActDet:
             group = map(itemgetter(1), g)
             idx_range.append([group[0], group[-1]])
         idx_range = np.array(idx_range)
-        silence_time_range = idx_range[np.where((idx_range[:,1] 
+        silence_time_idx = idx_range[np.where((idx_range[:,1] 
                                                   - idx_range[:,0]) > silence_sec * sec_to_bin), :][0]
-        
+        silence_time_range = idx_range[np.where((idx_range[:,1] 
+                                                  - idx_range[:,0]) > silence_sec * sec_to_bin), :][0]/sec_to_bin
         idx_nums = ()
-        for i in silence_time_range:
+        for i in silence_time_idx:
             idx_nums = np.append(idx_nums,range(int(i[0]), int(i[1]+1)))
-        idx_act = list(set(range(time_ins.shape[0])).difference(set(idx_nums))) 
+        idx_act = list(set(range(power.shape[0])).difference(set(idx_nums))) 
         
         silence_time_duration = silence_time_range[:,1] - silence_time_range[:,0]
         silence_time = sum(silence_time_duration)
-        return silence_time_range, silence_time, idx_act
+        return silence_time_idx, silence_time, idx_act
 
     def detect_silence(self, power_threshold = 0, silence_sec = 0.5, mvg_point = 5):
         # power_threshold is a value that greater than 0. Usually is 1
