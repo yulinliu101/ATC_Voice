@@ -11,9 +11,9 @@ from itertools import groupby, chain
 from operator import itemgetter
 
 class AudioActDet:
-    def __init__(self, AudioLoad, AudioFeatures):
-        self.AudioClass = AudioLoad
-        self.AudioFeatures = AudioFeatures
+    def __init__(self, AudioFeatures):
+        
+        self.sec_to_bin, self.time_ins, self.Pxx = AudioFeatures.sec_to_bin, AudioFeatures.time_ins.copy(), AudioFeatures.Pxx.copy()
 
     def Movingavg(self, x, n = 5):
         padarray = np.lib.pad(x, n//2, 'edge')
@@ -47,23 +47,11 @@ class AudioActDet:
 
     def detect_silence(self, power_threshold = 0, silence_sec = 0.5, mvg_point = 5):
         # power_threshold is a value that greater than 0. Usually is 1
-        # silence_sec_s is the minimum duration of a silence, in seconds. Usually is 3.
-        
-        # Get array of sound
-        sample_rate = self.AudioClass.sample_rate
-        sound_track = self.AudioClass.sound_track
-        sound_length = self.AudioClass.sample_audio.duration_seconds
-        
-        # Plot specgram and get pxx, freq, bins, im
-        # freqs, time_ins, Pxx = scipy.signal.spectrogram(np.array(sound_track), fs = sample_rate, window = 'hann', nperseg = 2048, noverlap = 2048/8, detrend = 'constant', scaling = 'density', mode = 'psd')
-        freqs, time_ins, Pxx = self.AudioFeatures.freqs.copy(), self.AudioFeatures.time_ins.copy(), self.AudioFeatures.Pxx.copy()
+        # silence_sec_s is the minimum duration of a silence, in seconds. Usually is 0.5.
 
-        Pxx += Pxx.mean()
-        Zxx = np.flipud(10. * np.log10(Pxx))
+        self.Pxx += self.Pxx.mean()
+        Zxx = np.flipud(10. * np.log10(self.Pxx))
         # Power Spectrum Density V**2/Hz
-        # Pxx, _, bins, _ = plt.specgram(sound_track, scale = 'linear', Fs = sample_rate, NFFT = 1024, noverlap = 1024/4)
-        # plt.clf()
-        # plt.close('all')
 
         # High frequency band & Low frequency band
         Hxx = Zxx[0:Zxx.shape[0]//2, :Zxx.shape[1]]
@@ -75,8 +63,7 @@ class AudioActDet:
         Fxx = lxxf - np.mean(hxxf)
         # plt.plot(Fxx)
         
-        sec_to_bin = time_ins.shape[0] / sound_length
-        out = self.combine_to_range(Fxx,power_threshold,sec_to_bin, silence_sec)
+        out = self.combine_to_range(Fxx, power_threshold, self.sec_to_bin, silence_sec)
         #si_time_duration = out[1]
         # active_rate = 1 - out[1] / sound_length
         self.silence_seg = out[0].flatten()

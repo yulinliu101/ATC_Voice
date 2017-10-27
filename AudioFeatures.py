@@ -28,6 +28,7 @@ class AudioFeatures:
 
         self.sound_track = AudioLoad.sound_track
         self.sample_rate = AudioLoad.sample_rate
+        self.sound_length = AudioLoad.sound_length
         self.nperseg = nperseg
         self.overlap_rate = overlap_rate
         self.nfft = nfft
@@ -102,6 +103,7 @@ class AudioFeatures:
         self.num_cep = num_cep
         self.fbank = self.melFilterBank(nfilt = self.nfbank, lowfreq = self.fbank_lowfreq, highfreq = self.fbank_hfreq)
         self.freqs, self.time_ins, self.Pxx = self.stft(power_mode = 'PSD')
+        self.sec_to_bin = self.time_ins.shape[0] / self.sound_length
         
         fbank_energy = self.fbank.dot(self.Pxx)
         self.fbank_energy = np.where(fbank_energy == 0, 1e-10, fbank_energy)
@@ -204,7 +206,7 @@ class AudioFeatures:
             plt.xlabel('Time/ Sec')
             plt.ylabel('Frequency / Hz')
             cb = plt.colorbar(im, orientation='horizontal')
-            cb.set_label('Filter Banks Energy')
+            cb.set_label('Filter Banks Energy (dB/Hz)')
         elif item == 'features':
             plt.figure(figsize=(18,12))
             plt.title('Feature Map')

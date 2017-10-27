@@ -23,39 +23,41 @@ class AudioLoad:
         print('Analyzed File Type and Date: %s'%self.start_str)
         # self.daily_file_list = [filename for filename in os.listdir(self.path) if filename.startswith(self.start_str)]
         # self.daily_file_list.sort()
-        # self.sample_audio_file_list = []
-        self.sample_audio = AudioSegment.empty()
+        # sample_audio_file_list = []
+        sample_audio = AudioSegment.empty()
         # self.combine_sample = combine_sample
         # if self.combine_sample:
-        #     self.sample_audio = AudioSegment.empty()
+        #     sample_audio = AudioSegment.empty()
         # else:
-        #     self.sample_audio = []
+        #     sample_audio = []
 
         try:
             for sample_time in Anal_Sample_Time:
-                # self.sample_audio_file_list.append(self.start_str + '-' + sample_time + '.mp3')
+                # sample_audio_file_list.append(self.start_str + '-' + sample_time + '.mp3')
                 # if self.combine_sample:
-                self.sample_audio += AudioSegment.from_mp3(self.path + self.start_str + '-' + sample_time + '.mp3')
+                sample_audio += AudioSegment.from_mp3(self.path + self.start_str + '-' + sample_time + '.mp3')
                 # else:
-                #     self.sample_audio.append(AudioSegment.from_mp3(self.path + self.start_str + '-' + sample_time + '.mp3'))
+                #     sample_audio.append(AudioSegment.from_mp3(self.path + self.start_str + '-' + sample_time + '.mp3'))
 
             # if combine_sample:
-            print('Duration of the sample audio: %.2f'%self.sample_audio.duration_seconds)
-            print('Sampling rate of the sample audio: %d'%self.sample_audio.frame_rate)
-            self.sample_rate = self.sample_audio.frame_rate
-            self.sound_track = np.array(self.sample_audio.get_array_of_samples(), dtype = np.int16)/32678
+            print('Duration of the sample audio: %.2f'%sample_audio.duration_seconds)
+            print('Sampling rate of the sample audio: %d'%sample_audio.frame_rate)
+            self.sample_rate = sample_audio.frame_rate
+            self.sound_track = np.array(sample_audio.get_array_of_samples(), dtype = np.int16)/32678
+            self.sound_length = sample_audio.duration_seconds
             # else:
-            #     print('Sampling rate of the sample audio: %d'%self.sample_audio[0].frame_rate)
-            #     self.sample_rate = self.sample_audio[0].frame_rate
+            #     print('Sampling rate of the sample audio: %d'%sample_audio[0].frame_rate)
+            #     self.sample_rate = sample_audio[0].frame_rate
         except:
             print('No sample audio loaded')
             self.sample_rate = 0
             self.sound_track = np.array([])
+            self.sound_length = 0
             pass
 
     def getAudio(self):
         # if self.combine_sample:
-        return self.sample_audio, self.sound_track
+        return self.sound_track
 
     def Visualizer(self, tmin, tmax):
         if tmax - tmin > 300:
