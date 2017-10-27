@@ -2,11 +2,14 @@ from __future__ import division
 import numpy as np
 from sklearn.mixture import GaussianMixture
 from scipy.stats import multivariate_normal as mvn
+import matplotlib.pyplot as plt
 
 class AudioSegmentation:
     def __init__(self, 
-                 features):
-        self.features = features
+                 features,
+                 VAD_removal = True):
+        self.features = features.copy()
+        self.VAD_removal = VAD_removal
 
     def __helperSeg__(self, 
                       features, 
@@ -15,6 +18,7 @@ class AudioSegmentation:
                       incFrame = 10, 
                       mixture = False, 
                       Lambda = 1):
+
         analFrame = features[:, startFrame:endFrame]
         Nz = endFrame - startFrame
         if mixture:
@@ -44,7 +48,7 @@ class AudioSegmentation:
                      mov_frame = 10,
                      mixture = False,
                      Lambda = 1):
-        Seg = []
+        self.Seg = []
         currentST = 0
         currentET = min_wind
         currentSize = currentET - currentST
@@ -54,7 +58,7 @@ class AudioSegmentation:
             currentST = turnPt
             currentET = turnPt + min_wind
             currentSize = currentET - currentST
-            Seg.append(turnPt)
+            self.Seg.append(turnPt)
             turnPt = -1
         while currentST < self.features.shape[1]:
             while currentSize <= max_wind and turnPt == -1:
@@ -72,11 +76,34 @@ class AudioSegmentation:
                 currentET = currentST + min_wind
                 currentSize = currentET - currentST
             elif turnPt != -1:
-                Seg.append(turnPt)
+                self.Seg.append(turnPt)
                 currentST = turnPt
                 currentET = currentST + min_wind
                 currentSize = currentET - currentST
                 turnPt = -1
             else:
-                return Seg
-        return Seg
+                return self.Seg
+        return self.Seg
+
+    def Visualizer(self, tmin, tmax, AudioFeatures, AudioActDet = None, xticks_gap = 5):
+        plt.figure(figsize=(18,6))
+        plt.title('Segmentation Result')
+        im = plt.imshow(np.flipud(AudioFeatures.mfcc[:, np.where((AudioFeatures.time_ins >= tmin) & (AudioFeatures.time_ins <= tmax))[0]]), 
+                            aspect = 'auto', 
+                            extent = [tmin, tmax, 0, AudioFeatures.mfcc.shape[0]], 
+                            interpolation = 'nearest')
+        if self.VAD_removal:
+            # self.Seg.extend(list(AudioActDet.silence_seg))
+            segTime = AudioFeatures.time_ins[AudioActDet.idx_act[self.Seg]]
+            deadTime = AudioFeatures.time_ins[AudioActDet.silence_seg]
+        else:
+            segTime = AudioFeatures.time_ins[self.Seg]
+        segTimePlot = segTime[(segTime >= tmin)&(segTime <= tmax)]
+        deadTimePlot = deadTime[(deadTime >= tmin)&(deadTime <= tmax)]
+        plt.vlines(segTimePlot, 0, 12, linewidth = 1)
+        plt.vlines(deadTimePlot, 0, 12, linewidth = 1, linestyles = '--', color = 'm')
+        plt.xticks(np.arange(tmin, tmax, xticks_gap))
+        plt.show()
+
+        return segTime, deadTime
+

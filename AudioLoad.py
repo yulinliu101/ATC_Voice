@@ -33,7 +33,7 @@ class AudioLoad:
 
         try:
             for sample_time in Anal_Sample_Time:
-                self.sample_audio_file_list.append(self.start_str + '-' + sample_time + '.mp3')
+                # self.sample_audio_file_list.append(self.start_str + '-' + sample_time + '.mp3')
                 # if self.combine_sample:
                 self.sample_audio += AudioSegment.from_mp3(self.path + self.start_str + '-' + sample_time + '.mp3')
                 # else:

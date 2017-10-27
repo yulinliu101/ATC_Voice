@@ -43,7 +43,7 @@ class AudioFeatures:
         emphasized_signal = np.append(self.sound_track[0], self.sound_track[1:] - alpha * self.sound_track[:-1])
         return emphasized_signal
 
-    def stft(self, power_mode = 'PS'):
+    def stft(self, power_mode = 'PSD'):
         freqs, time_ins, Pxx = scipy.signal.stft(self.sound_track, 
                                                  fs = self.sample_rate, 
                                                  nperseg = self.nperseg, 

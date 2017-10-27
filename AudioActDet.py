@@ -39,7 +39,7 @@ class AudioActDet:
         idx_nums = ()
         for i in silence_time_idx:
             idx_nums = np.append(idx_nums,range(int(i[0]), int(i[1]+1)))
-        idx_act = list(set(range(power.shape[0])).difference(set(idx_nums))) 
+        idx_act = np.array(list(set(range(power.shape[0])).difference(set(idx_nums))) )
         
         silence_time_duration = silence_time_range[:,1] - silence_time_range[:,0]
         silence_time = sum(silence_time_duration)
@@ -56,7 +56,7 @@ class AudioActDet:
         
         # Plot specgram and get pxx, freq, bins, im
         # freqs, time_ins, Pxx = scipy.signal.spectrogram(np.array(sound_track), fs = sample_rate, window = 'hann', nperseg = 2048, noverlap = 2048/8, detrend = 'constant', scaling = 'density', mode = 'psd')
-        freqs, time_ins, Pxx = self.AudioFeatures.freqs, self.AudioFeatures.time_ins, self.AudioFeatures.Pxx
+        freqs, time_ins, Pxx = self.AudioFeatures.freqs.copy(), self.AudioFeatures.time_ins.copy(), self.AudioFeatures.Pxx.copy()
 
         Pxx += Pxx.mean()
         Zxx = np.flipud(10. * np.log10(Pxx))
@@ -73,13 +73,15 @@ class AudioActDet:
         hxxf = self.Movingavg(Hxx.sum(axis=0), n = mvg_point)
         lxxf = self.Movingavg(Lxx.sum(axis = 0), n = mvg_point)
         Fxx = lxxf - np.mean(hxxf)
+        # plt.plot(Fxx)
         
         sec_to_bin = time_ins.shape[0] / sound_length
         out = self.combine_to_range(Fxx,power_threshold,sec_to_bin, silence_sec)
         #si_time_duration = out[1]
-        active_rate = 1 - out[1] / sound_length
-        idx_act = out[2]
-        Pxx_act = Pxx[:, idx_act]
+        # active_rate = 1 - out[1] / sound_length
+        self.silence_seg = out[0].flatten()
+        self.idx_act = out[2]
+        # self.Pxx_act = Pxx[:, self.idx_act]
         # idx_act is the index vector that has voice activity, when input the diarz_segment index "idx_act[idx_diarz]",
         # Pxx_act is the spectral matrix that has already remove the silence part.
-        return active_rate, idx_act, Pxx_act
+        return self.silence_seg, self.idx_act
