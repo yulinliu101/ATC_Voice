@@ -63,12 +63,11 @@ class AudioActDet:
         Fxx = lxxf - np.mean(hxxf)
         # plt.plot(Fxx)
         
-        out = self.combine_to_range(Fxx, power_threshold, self.sec_to_bin, silence_sec)
+        self.silence_seg_2d, _, self.idx_act = self.combine_to_range(Fxx, power_threshold, self.sec_to_bin, silence_sec)
         #si_time_duration = out[1]
         # active_rate = 1 - out[1] / sound_length
-        self.silence_seg = out[0].flatten()
-        self.idx_act = out[2]
+        self.silence_seg = self.silence_seg_2d.flatten()
         # self.Pxx_act = Pxx[:, self.idx_act]
         # idx_act is the index vector that has voice activity, when input the diarz_segment index "idx_act[idx_diarz]",
         # Pxx_act is the spectral matrix that has already remove the silence part.
-        return self.silence_seg, self.idx_act
+        return self.silence_seg, self.silence_seg_2d, self.idx_act
