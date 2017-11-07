@@ -10,14 +10,14 @@ import numpy as np
 from pydub import AudioSegment
 import matplotlib.pyplot as plt
 
+path = os.getcwd() + "/AudioDownload/Tower/"
+files = [path + i for i in os.listdir(path)
+         if os.path.isfile(os.path.join(path,i)) and 'wav' in i]
 
 class AudioLoad:
-    def __init__(self, root_dir = "/AudioDownload/Tower/",constr = "KJFK"):
-        # 'KJFK-Twr-Apr-19-2017-1000Z.mp3'
-        # File_Type: 'Twr', 'ROBER', 'Final', 'CAMRN'
-        self.path = os.getcwd() + root_dir
-        files = [i for i in os.listdir(self.path) if os.path.isfile(os.path.join(self.path,i)) and constr in i]
+    def __init__(self, file_list = files):
         
+        # File_Type: 'Twr', 'ROBER', 'Final', 'CAMRN'
         # print('Analyzed File Type and Date: %s'%self.start_str)
         
         # self.daily_file_list = [filename for filename in os.listdir(self.path) if filename.startswith(self.start_str)]
@@ -31,11 +31,11 @@ class AudioLoad:
         #     sample_audio = []
 
         try:
-            for sample_file in files:
+            for file_name in file_list:
                 # sample_audio_file_list.append(self.start_str + '-' + sample_time + '.mp3')
                 # if self.combine_sample:
-                print('Analyzed File Type and Date: %s'%sample_file)
-                sample_audio += AudioSegment.from_mp3(self.path + '/' + sample_file)
+                print('Analyzed File Type and Date: %s'%file_name)
+                sample_audio += AudioSegment.from_mp3(file_name)
                 # else:
                 #     sample_audio.append(AudioSegment.from_mp3(self.path + self.start_str + '-' + sample_time + '.mp3'))
 
