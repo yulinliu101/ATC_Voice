@@ -48,7 +48,7 @@ class AudioFeatures:
         freqs, time_ins, Pxx = scipy.signal.stft(self.sound_track, 
                                                  fs = self.sample_rate, 
                                                  nperseg = self.nperseg, 
-                                                 noverlap = self.nperseg/self.overlap_rate, 
+                                                 noverlap = self.nperseg//self.overlap_rate, 
                                                  nfft = self.nfft,
                                                  window = self.window_fun, 
                                                  return_onesided = True, 
@@ -95,6 +95,33 @@ class AudioFeatures:
                 fbank[j, i] = (bin_num[j + 2] - i) / (bin_num[j + 2] - bin_num[j + 1])
         return fbank
 
+    def MFBankFeature(self, 
+                      Energy = True):
+        self.fbank = self.melFilterBank(nfilt = self.nfbank, lowfreq = self.fbank_lowfreq, highfreq = self.fbank_hfreq)
+        self.freqs, self.time_ins, self.Pxx = self.stft(power_mode = 'PSD')
+        self.sec_to_bin = self.time_ins.shape[0] / self.sound_length
+        
+        fbank_energy = self.fbank.dot(self.Pxx)
+        self.fbank_energy = np.where(fbank_energy == 0, 1e-10, fbank_energy)
+        self.fbank_energy_db = 10. * np.log10(self.fbank_energy) # db/Hz
+
+        if Energy:
+            from energy_helper import _energy_helper
+            # base 10 log
+            tmpTime, logEnergy = _energy_helper(self.sound_track, 
+                                               fs = self.sample_rate, 
+                                               nperseg=self.nperseg, 
+                                               noverlap=self.nperseg//self.overlap_rate, 
+                                               nfft=self.nfft, 
+                                               axis=-1, 
+                                               boundary=None,
+                                               padded=False)
+            if np.array_equal(tmpTime, self.time_ins):
+                melFreqBank = np.concatenate((self.fbank_energy_db, logEnergy.reshape(1, -1)), axis = 0)
+                return melFreqBank
+            else:
+                raise ValueError("Time stamps not agreed! Check parameters!")
+
     def MFCC(self, 
              num_cep = 12, 
              lifting = True, 
@@ -117,18 +144,12 @@ class AudioFeatures:
             return self.mfcc
 
     def Delta(self, 
-              nshift = 2, 
-              order = 1):
+              target,
+              nshift = 2):
         if nshift < 1:
             raise ValueError("shiting parameter has to be greater than 1")
 
-        if order == 1:
-            try:
-                target = self.mfcc.copy()
-            except:
-                target = self.MFCC()
-        else:
-            target = self.Delta(nshift, order = order - 1)
+        # target = target.copy()
 
         n_frame = target.shape[1]
         denominator = nshift * (nshift + 1) * (2 * nshift + 1)/3.
@@ -141,15 +162,27 @@ class AudioFeatures:
 
         return delta/denominator
 
-    def FeatureExtraction(self, highest_order, **kwarg):
-        self.all_features = self.MFCC(kwarg['num_cep'], kwarg['lifting'], kwarg['lifting_coef'], kwarg['mean_normalization'])
+    def FeatureExtraction(self, 
+                          featureClass = 'fbank',
+                          highest_order = 2, 
+                          **kwarg):
+        if featureClass == 'fbank':
+            self.all_features = self.MFBankFeature(Energy = True)
+        elif featureClass == 'mfcc':
+            self.all_features = self.MFCC(kwarg['num_cep'], kwarg['lifting'], kwarg['lifting_coef'], kwarg['mean_normalization'])
+        else:
+            raise ValueError("featureClass can be either fbank or mfcc")
+
         if highest_order == 0:
             return self.all_features
-        for order in range(1, highest_order + 1):
-            exec("delta_%d = self.Delta(nshift = kwarg['nshift'], order = %d)"%(order, order))
+        for order in range(highest_order):
+            if order == 0:
+                target = self.all_features.copy()
+            else:
+                exec("target = delta_%d.copy()"%(order-1))
+            exec("delta_%d = self.Delta(target = target,nshift = kwarg['nshift'])"%order)
             exec("self.all_features = np.concatenate((self.all_features, delta_%d), axis = 0)"%order)
         return self.all_features
-
 
     def lifter(self, lifting_coef = 22, mean_normalization = True):
         num_cep, n_frame = self.mfcc.shape
