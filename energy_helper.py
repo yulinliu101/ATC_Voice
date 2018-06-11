@@ -61,7 +61,11 @@ def _energy_helper(x,
         result = np.lib.stride_tricks.as_strided(x, 
                                                  shape=shape,
                                                  strides=strides)
-    result = np.sum(result**2, axis = 1)
+
+    result = result.real
+    result = np.fft.rfft(result, n=nfft)
+    
+    result = np.sum(np.abs(result)**2, axis = 1)
     result += 1e-15
     result = np.log10(result)
 
