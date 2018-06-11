@@ -1,6 +1,9 @@
 from __future__ import division
 import numpy as np
 
+# help link
+# https://dsp.stackexchange.com/questions/3377/calculating-the-total-energy-of-a-signal
+# https://github.com/scipy/scipy/blob/master/scipy/signal/spectral.py
 def _energy_helper(x, 
                    fs = 1.0, 
                    nperseg=None, 
