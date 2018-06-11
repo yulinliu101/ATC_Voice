@@ -11,16 +11,16 @@ from pydub import AudioSegment
 import matplotlib.pyplot as plt
 
 
+# path = "/Users/dl/GSR/Audio/"
+# files = [path + i for i in os.listdir(path)
+#          if os.path.isfile(os.path.join(path,i)) and 'Apr' in i]
+
 class AudioLoad:
-    def __init__(self, Airport = 'KJFK', 
-                 root_dir = "/AudioDownload/Tower/", 
-                 File_Type = 'Twr', 
-                 Anal_Date = 'Apr-28-2017', 
-                 Anal_Sample_Time = ['1800Z', '1830Z']):
+    def __init__(self, file_list, verbose = False):
+        
         # File_Type: 'Twr', 'ROBER', 'Final', 'CAMRN'
-        self.path = os.getcwd() + root_dir
-        self.start_str = Airport + '-' + File_Type + '-' + Anal_Date
-        print('Analyzed File Type and Date: %s'%self.start_str)
+        # print('Analyzed File Type and Date: %s'%self.start_str)
+        
         # self.daily_file_list = [filename for filename in os.listdir(self.path) if filename.startswith(self.start_str)]
         # self.daily_file_list.sort()
         # sample_audio_file_list = []
@@ -32,16 +32,19 @@ class AudioLoad:
         #     sample_audio = []
 
         try:
-            for sample_time in Anal_Sample_Time:
+            for file_name in file_list:
                 # sample_audio_file_list.append(self.start_str + '-' + sample_time + '.mp3')
                 # if self.combine_sample:
-                sample_audio += AudioSegment.from_mp3(self.path + self.start_str + '-' + sample_time + '.mp3')
+                if verbose:
+                    print('Analyzed File Type and Date: %s'%file_name)
+                sample_audio += AudioSegment.from_mp3(file_name)
                 # else:
                 #     sample_audio.append(AudioSegment.from_mp3(self.path + self.start_str + '-' + sample_time + '.mp3'))
 
             # if combine_sample:
-            print('Duration of the sample audio: %.2f'%sample_audio.duration_seconds)
-            print('Sampling rate of the sample audio: %d'%sample_audio.frame_rate)
+            if verbose:
+                print('Duration of the sample audio: %.2f'%sample_audio.duration_seconds)
+                print('Sampling rate of the sample audio: %d'%sample_audio.frame_rate)
             self.sample_rate = sample_audio.frame_rate
             self.sound_track = np.array(sample_audio.get_array_of_samples(), dtype = np.int16)/32678
             self.sound_length = sample_audio.duration_seconds
@@ -71,4 +74,4 @@ class AudioLoad:
         ax1.set_ylabel('Audio/ Volt')
         ax1.set_ylim(-1, 1)
         plt.show()
-        return 
+        return

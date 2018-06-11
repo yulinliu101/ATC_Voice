@@ -230,6 +230,25 @@ class AudioFeatures:
             plt.ylabel('Frequency / Hz')
             cb = plt.colorbar(im, orientation='horizontal')
             cb.set_label('Cross Spectral Density (dB/Hz)')
+        elif item == 'spectrogramHalies':
+            plt.title('Spectrogram')
+            ax1 = plt.subplot(211)
+            im = ax1.imshow(np.flipud(10 * np.log10(self.Pxx[self.Pxx.shape[0]//2:, np.where((self.time_ins >= tmin) & (self.time_ins <= tmax))[0]])), 
+                            aspect = 'auto', 
+                            extent = [tmin, tmax, self.freqs.max()//2, self.freqs.max()], 
+                            interpolation = 'nearest')
+
+            ax2 = plt.subplot(212)
+            im = ax2.imshow(np.flipud(10 * np.log10(self.Pxx[:self.Pxx.shape[0]//2, np.where((self.time_ins >= tmin) & (self.time_ins <= tmax))[0]])), 
+                            aspect = 'auto', 
+                            extent = [tmin, tmax, self.freqs.min(), self.freqs.max()//2], 
+                            interpolation = 'nearest')
+
+            plt.xlabel('Time/ Sec')
+            plt.ylabel('Frequency / Hz')
+            cb = plt.colorbar(im, orientation='horizontal')
+            cb.set_label('Cross Spectral Density (dB/Hz)')
+
         elif item == 'filterbank':
             plt.title('Filterbank Diagram')
             im = plt.imshow(np.flipud(self.fbank_energy_db[:, np.where((self.time_ins >= tmin) & (self.time_ins <= tmax))[0]]), 
@@ -253,4 +272,5 @@ class AudioFeatures:
             cb.set_label('Feature Map Coefficients')
         else:
             raise ValueError('item not implemented! item could only be "signal","mfcc", "spectrogram", "features", or "filterbank"')
+        plt.tight_layout()
         plt.show()
