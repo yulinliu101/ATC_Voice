@@ -3,6 +3,7 @@ import numpy as np
 import scipy
 import scipy.signal
 import matplotlib.pyplot as plt
+from energy_helper import _energy_helper
 
 def Hz2Mel(freq):
     # convert Hz to Mel
@@ -45,25 +46,40 @@ class AudioFeatures:
         return emphasized_signal
 
     def stft(self, power_mode = 'PSD'):
-        freqs, time_ins, Pxx = scipy.signal.stft(self.sound_track, 
-                                                 fs = self.sample_rate, 
-                                                 nperseg = self.nperseg, 
-                                                 noverlap = self.nperseg//self.overlap_rate, 
-                                                 nfft = self.nfft,
-                                                 window = self.window_fun, 
-                                                 return_onesided = True, 
-                                                 padded = False, 
-                                                 boundary = None, 
-                                                 detrend = 'constant')
+        self.freqs, self.time_ins, self.Pxx = scipy.signal.stft(self.sound_track, 
+                                                                 fs = self.sample_rate, 
+                                                                 nperseg = self.nperseg, 
+                                                                 noverlap = self.nperseg//self.overlap_rate, 
+                                                                 nfft = self.nfft,
+                                                                 window = self.window_fun, 
+                                                                 return_onesided = True, 
+                                                                 padded = False, 
+                                                                 boundary = None, 
+                                                                 detrend = 'constant')
         if power_mode == 'PS':
-            Pxx = (np.abs(Pxx))**2 # Power Spectrum V**2
+            self.Pxx = (np.abs(self.Pxx))**2 # Power Spectrum V**2
         elif power_mode == 'PSD':
-            Pxx = (np.abs(Pxx))**2/self.nfft # Power Spectrum Density V**2/Hz
+            self.Pxx = (np.abs(self.Pxx))**2/self.nfft # Power Spectrum Density V**2/Hz
         elif power_mode == 'magnitude':
-            Pxx = np.abs(Pxx)
+            self.Pxx = np.abs(self.Pxx)
         else:
             raise ValueError('power_mode can only be "PS", "PSD", or "magnitude"')
-        return freqs, time_ins, Pxx
+        
+        self.sec_to_bin = self.time_ins.shape[0] / self.sound_length
+        return self.freqs, self.time_ins, self.Pxx
+
+    def Energy(self, boundary = None):
+        # base 10 log
+        tmpTime, logEnergy = _energy_helper(self.sound_track, 
+                                           fs = self.sample_rate, 
+                                           nperseg=self.nperseg, 
+                                           noverlap=self.nperseg//self.overlap_rate, 
+                                           nfft=self.nfft, 
+                                           axis=-1, 
+                                           boundary=None,
+                                           padded=False)
+        return logEnergy
+
 
     def melFilterBank(self, nfilt = 40, lowfreq = 0, highfreq = None):
         """Compute a Mel-filterbank. The filters are stored in the rows, the columns correspond
