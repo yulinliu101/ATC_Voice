@@ -7,9 +7,6 @@ import matplotlib.pyplot as plt
 from dateutil import parser
 import re
 
-global baseline_time 
-baseline_time = parser.parse('01/01/2017 0:0:0')
-
 def gather_info_matrix(root_dir,
                        file_list, 
                        dump_to_dir = 'Data/AudioMatrix/CAMRN/',
@@ -131,6 +128,8 @@ def gather_info_matrix(root_dir,
             print(filename, "is not available.")
     return 
 
+global baseline_time 
+baseline_time = parser.parse('01/01/2017 0:0:0')
 
 class InfoMatrix:
     def __init__(self, 
@@ -138,27 +137,40 @@ class InfoMatrix:
 
         '''
         file_list should be a list of file names (dirs) that has all info matrices
+        # each row of the info matrix is:
+          [0|enersum, 
+           1|enermax, 
+           2|enermin, 
+           3|ener25, 
+           4|enermed, 
+           5|ener75, 
+           6|ener90, 
+           7|enermea, 
+           8|enerstd, 
+           9|sectobin, 
+           10|actrate, 
+           11|(active rate index tuple)]
         '''
         self.file_list = file_list
 
-    def load_all_info_matrices(self):
+    def load_process_info_matrices(self, file_list):
         load_files = []
         tmp_info_matrices = []
 
         max_len = 0
-        for fname in file_names:
-            if 'CAMRN' in fname and 'Jul' in fname:
-                info_matrix = np.load('Data/AudioMatrix/CAMRN/'+fname)[:1800, :]
-                if info_matrix.shape[0] != 1800:
-                    pass
-                else:
-                    if info_matrix.shape[1] > max_len:
-                        max_len = info_matrix.shape[1]
-                    elap_time = (parser.parse(re.findall('Jul-\d\d-\d\d\d\d-\d\d\d\d',fname)[0]) - baseline_time).total_seconds()
-                    elap_time = np.arange(1800, dtype=np.float32) + elap_time
-                    info_matrix = np.insert(info_matrix, 0, elap_time, axis = 1)
-                    tmp_info_matrices.append(info_matrix)
-                    load_files.append(fname)
+        for fname in file_list:
+            info_matrix = np.load(fname)[:1800, :]
+            if info_matrix.shape[0] != 1800:
+                pass
+            else:
+                if info_matrix.shape[1] > max_len:
+                    max_len = info_matrix.shape[1]
+                elap_time = (parser.parse(re.findall('Jul-\d\d-\d\d\d\d-\d\d\d\d',fname)[0]) - baseline_time).total_seconds()
+                elap_time = np.arange(1800, dtype=np.float32) + elap_time
+                info_matrix = np.insert(info_matrix, 0, elap_time, axis = 1)
+                # insert the elapsed time to the first dimension
+                tmp_info_matrices.append(info_matrix)
+                load_files.append(fname)
         info_matrices = []
         for element in tmp_info_matrices:
             element = np.pad(element, ((0,0), (0, max_len + 1 - element.shape[1])), mode = 'constant', constant_values = -1)
@@ -166,7 +178,50 @@ class InfoMatrix:
 
         info_matrices = np.array(info_matrices) # has the shape of [n_audio, 1800 (sec), 17]
         # # bound active rate
-        info_matrices[:, :, 8] = np.minimum(1, info_matrices[:, :, 8])
-        info_matrices[:, :, 8] = np.maximum(0, info_matrices[:, :, 8])
+        info_matrices[:, :, 11] = np.minimum(1, info_matrices[:, :, 11])
+        info_matrices[:, :, 11] = np.maximum(0, info_matrices[:, :, 11])
 
-        return info_matrices, 
+        return info_matrices, load_files
+
+    def load_process_TTF(self, file_name):
+        # file_name = 'Data/N90/N90_TurnToFinal_20170101-20171231+BeaconCode.csv'
+        N90 = pd.read_csv(file_name, usecols=[0, 2, 3, 4, 5, 6, 7, 16, 17, 22, 31, 32, 33, 34, 35, 36])
+        N90 = N90.loc[N90.Airport == 'JFK'].reset_index(drop = True)
+        return
+
+    def mergy_info_matrix_with_TTF(self):
+        return
+
+
+    def mergy_consective_idx(self, info_matrices):
+        row, col, ver = np.where(info_matrices[:, :, 12:] != -1)
+        active_index = info_matrices[:, :, 12:][row, col, ver].reshape(-1, 2).astype(np.int)
+        active_index = np.split(active_index, np.cumsum(np.bincount(row))//2)[:-1]
+        # combine consective active indices into one
+        new_active_index = []
+        for element in active_index:
+            head = -99
+            tail = -99
+            tmp_active_index = []
+            for tmp_row in element:
+                if tmp_row[0] != tail + 1:
+                    tmp_active_index.append([head, tail])
+                    head = tmp_row[0]
+                    tail = tmp_row[1]
+                else:
+                    tail = tmp_row[1]
+            tmp_active_index.append([head, tail])
+            tmp_active_index = np.array(tmp_active_index)
+            tmp_active_index = tmp_active_index[1:]
+            new_active_index.append(tmp_active_index) # list of np arrays, each array is the merged st idx for a 30-min period
+            # has the length of # of loaded files
+        return new_active_index
+
+
+def parse_datetime(x):
+    try:
+        y = parser.parse(x)
+    except:
+        y = parser.parse('01/01/1970')
+        print(x)
+    return y
