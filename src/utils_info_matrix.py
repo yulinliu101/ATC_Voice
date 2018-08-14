@@ -2,35 +2,21 @@
 # @Author: Yulin Liu
 # @Date:   2018-08-13 16:09:35
 # @Last Modified by:   Yulin Liu
-# @Last Modified time: 2018-08-13 17:45:50
+# @Last Modified time: 2018-08-14 12:22:19
 
-from utils import baseline_time
 import numpy as np
-from utils_data_loader import audio_data_loader
-from utils_feature_extractor import AudioFeatures
-from utils_VAD import voice_activity_detector
+from .utils import baseline_time
+from .utils_data_loader import audio_data_loader
+from .utils_feature_extractor import AudioFeatures
+from .utils_VAD import voice_activity_detector
+import zipfile
+import os
+from dateutil import parser
+import re
 
-# import AudioLoad
-# import AudioFeatures
-# import AudioActDet
-# import AudioSegmentation
-# from energy_helper import _energy_helper
-# import scipy
-# import numpy as np
-# import matplotlib.pyplot as plt
-# import pickle
-# import os
-# import time
-# import pandas as pd
-# import datetime
-# from sklearn.decomposition import PCA
-# import statsmodels.api as sm 
-# import math
-# from itertools import groupby, chain, count
-# from operator import itemgetter
-
-def gather_info_matrix(file_list, 
-                       dump_to_dir = 'Data/AudioMatrix/CAMRN/',
+def gather_info_matrix(file_list,
+                       channel,
+                       dump_to_tmp = True,
                        verbose = False):
     """
     from MatchAudioTTF import gather_info_matrix
@@ -43,8 +29,19 @@ def gather_info_matrix(file_list,
     """
     # root_dir = "F:/AudioData/CAMRN/"
     # file_list = [path + i for i in os.listdir(path) if os.path.isfile(os.path.join(path,i)) and 'Apr' in i]
+    
+    if dump_to_tmp:
+        try:
+            os.mkdir('tmp')
+        except:
+            pass
+        try:
+            os.mkdir('tmp/%s'%channel)
+        except:
+            pass
+    else:
+        pass
 
-    path = root_dir
     file_idx = 0
     for filename in file_list:
         file_idx += 1
@@ -83,13 +80,13 @@ def gather_info_matrix(file_list,
             actidxs = []
             actrate = []
             
-            time_list = np.arange(0, len(energy), VADClass.sec_to_bin)
+            time_list = np.arange(0, len(energy), FeatureClass.sec_to_bin)
             if len(time_list) < 1800:
                 print(filename, 'not enough time')
             else:
                 for i in time_list:
-                    sectobin.append(VADClass.sec_to_bin)
-                    part = energy[int(i):int(i+VADClass.sec_to_bin)]
+                    sectobin.append(FeatureClass.sec_to_bin)
+                    part = energy[int(i):int(i+FeatureClass.sec_to_bin)]
                     enersum.append(sum(part))
                     enermax.append(max(part))
                     enermin.append(min(part))
@@ -102,7 +99,7 @@ def gather_info_matrix(file_list,
                     enermea.append(np.mean(part))
                     enerstd.append(np.std(part))
 
-                    actidx = idx_act[np.where((idx_act < i+VADClass.sec_to_bin) & (idx_act >= i))]#.tolist()
+                    actidx = idx_act[np.where((idx_act < i+FeatureClass.sec_to_bin) & (idx_act >= i))]#.tolist()
                     idx_range = []
 
                     groups = groupby(actidx, key = lambda q,x = count(): q-next(x))
@@ -114,7 +111,7 @@ def gather_info_matrix(file_list,
         #                 idx_range.append(group[0])
         #                 idx_range.append(group[-1])
                     actidxs.append(idx_range)
-                    actrate.append(len(actidx)/(int(i+VADClass.sec_to_bin) - int(i)))
+                    actrate.append(len(actidx)/(int(i+FeatureClass.sec_to_bin) - int(i)))
 
                 lens = np.array([len(item) for item in actidxs])
                 mask = lens[:,None] > np.arange(lens.max())
@@ -123,8 +120,14 @@ def gather_info_matrix(file_list,
                 result = np.array([enersum, enermax, enermin, ener25, enermed, ener75, ener90, enermea, enerstd, sectobin, actrate])
                 info = np.concatenate((result, out.T), axis = 0)
                 info = info.astype(np.float32)
-                if dump_to_dir is not None:
-                    np.save(dump_to_dir + filename, info.T)
+                ###################################################
+                ## dump file to a temporary folder
+                ###################################################
+                if dump_to_tmp:
+                    np.save('tmp/%s/%s.npy'%(channel, filename), info.T)
+                else:
+                    pass
+
                 if file_idx % 100 == 0:
                     print('processing file %d'%file_idx)
                 if verbose:
@@ -132,5 +135,58 @@ def gather_info_matrix(file_list,
                     print('Computation Time: ', time.time()-st)
                     print('********************************************************************')
         except IndexError:
-            print(filename, "is not available.")
-    return 
+            print("%s is not available."%filename)
+    return info.T
+
+
+def load_channel_features(file_pointer, channel = 'CAMRN'):
+    # energy sum, max energy, min energy, median energy, mean energy, std energy, sec_to_bin, active rate
+    # index of active st, index of active end (pairs)
+    """
+    original info matrix contains:
+    [0|enersum, 
+     1|enermax, 
+     2|enermin, 
+     3|ener25, 
+     4|enermed, 
+     5|ener75, 
+     6|ener90, 
+     7|enermea, 
+     8|enerstd, 
+     9|sectobin, 
+     10|actrate, 
+     11|(active rate index tuple)]
+     
+     returned info matrix adds the time stamps to the index 0
+    """
+    pointer_file_names = np.load(file_pointer)
+
+    load_files = []
+    tmp_info_matrices = []
+    max_len = 0
+    # for fname in file_names:
+    for fname in pointer_file_names.keys():
+        if channel in fname:
+            info_matrix = pointer_file_names[fname][:1800, :]
+            if info_matrix.shape[0] != 1800:
+                pass
+            else:
+                if info_matrix.shape[1] > max_len:
+                    max_len = info_matrix.shape[1]
+                elap_time = (parser.parse(re.findall('(?:Jan?|Feb?|Mar?|Apr?|May|Jun?|Jul?|Aug?|Sep?|Oct?|Nov?|Dec)-\d\d-\d\d\d\d-\d\d\d\d',fname)[0]) - baseline_time).total_seconds()
+                elap_time = np.arange(1800, dtype=np.float32) + elap_time
+                info_matrix = np.insert(info_matrix, 0, elap_time, axis = 1) # insert time stamps to index 0
+                tmp_info_matrices.append(info_matrix)
+                load_files.append(fname)
+    info_matrices = []
+    for element in tmp_info_matrices:
+        element = np.pad(element, ((0,0), (0, max_len + 1 - element.shape[1])), mode = 'constant', constant_values = -1)
+        info_matrices.append(element)
+
+    info_matrices = np.array(info_matrices)
+    # # bound active rate
+    info_matrices[:, :, 11] = np.minimum(1, info_matrices[:, :, 11])
+    info_matrices[:, :, 11] = np.maximum(0, info_matrices[:, :, 11])
+    
+    return info_matrices
+

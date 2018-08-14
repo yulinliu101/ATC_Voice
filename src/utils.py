@@ -2,7 +2,7 @@
 # @Author: Yulin Liu
 # @Date:   2018-08-13 14:46:06
 # @Last Modified by:   Yulin Liu
-# @Last Modified time: 2018-08-13 16:44:32
+# @Last Modified time: 2018-08-14 12:05:31
 
 import calendar
 from dateutil import parser
@@ -12,7 +12,7 @@ baseline_time = parser.parse('01/01/2017 0:0:0')
 """
 useful functions
 """
-def file_header_collector(year = 2018, 
+def audio_file_header_collector(year = 2018, 
                           month = 1, 
                           day = 1, 
                           start_hour = 0, 
@@ -38,6 +38,15 @@ def file_header_collector(year = 2018,
                            header + str(i).zfill(2) + '30' + footer]
 
     return file_name_list
+
+def tmp_file_zipper(target_path, 
+                    dump_to_zipfile,
+                    clean_target_path = True):
+
+    # TODO: Add entire target_path to zipfile; Add remove dir function
+    with zipfile.ZipFile(dump_to_zipfile, mode = 'w', compression = zipfile.ZIP_DEFLATED) as zfile:
+        for file in os.listdir(target_path):
+            zfile.write('%s/%s'%(target_path, file))
 
 def Hz2Mel(freq):
     # convert Hz to Mel

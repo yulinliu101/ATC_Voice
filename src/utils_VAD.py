@@ -2,9 +2,9 @@
 # @Author: Yulin Liu, Lu Dai
 # @Date:   2018-08-13 16:20:17
 # @Last Modified by:   Yulin Liu
-# @Last Modified time: 2018-08-13 17:39:56
+# @Last Modified time: 2018-08-14 11:11:43
 
-from utils import combine_to_range, Movingavg
+from .utils import combine_to_range, Movingavg
 import numpy as np
 # from itertools import groupby, count
 # from operator import itemgetter

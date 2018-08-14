@@ -2,13 +2,13 @@
 # @Author: Yulin Liu
 # @Date:   2018-08-13 14:23:44
 # @Last Modified by:   Yulin Liu
-# @Last Modified time: 2018-08-13 17:09:22
+# @Last Modified time: 2018-08-14 11:11:18
 
 import numpy as np
 import os
 from pydub import AudioSegment
 import pandas as pd
-from utils import baseline_time
+from .utils import baseline_time
 """
 load audio data into memory and extract features
 """
