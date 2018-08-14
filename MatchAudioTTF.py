@@ -6,6 +6,12 @@ import csv
 import matplotlib.pyplot as plt
 from dateutil import parser
 import re
+#############################
+DEPRECATED!
+DEPRECATED!
+DEPRECATED!
+#############################
+
 
 def gather_info_matrix(root_dir,
                        file_list, 
