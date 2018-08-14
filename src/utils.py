@@ -2,13 +2,16 @@
 # @Author: Yulin Liu
 # @Date:   2018-08-13 14:46:06
 # @Last Modified by:   Yulin Liu
-# @Last Modified time: 2018-08-14 12:05:31
+# @Last Modified time: 2018-08-14 16:03:57
 
 import calendar
 from dateutil import parser
+import numpy as np
 
 global baseline_time
 baseline_time = parser.parse('01/01/2017 0:0:0')
+import zipfile
+import os
 """
 useful functions
 """
@@ -25,7 +28,7 @@ def audio_file_header_collector(year = 2018,
     channel selection: 'CAMRN', 'ROBER', 'Twr'
     """
     if channel == 'Twr' or channel == 'Tower':
-        header = '%s-%s-%s-%s-%d-'%(airport, channel, calendar.month_abbr[month], str(day).zfill(2), year)
+        header = '%s-%s-%s-%s-%d-'%(airport, 'Twr', calendar.month_abbr[month], str(day).zfill(2), year)
     elif channel == 'ROBER' or channel == 'CAMRN':
         header = '%s-NY-App-%s-%s-%s-%d-'%(airport, channel, calendar.month_abbr[month], str(day).zfill(2), year)
     else:
@@ -45,8 +48,18 @@ def tmp_file_zipper(target_path,
 
     # TODO: Add entire target_path to zipfile; Add remove dir function
     with zipfile.ZipFile(dump_to_zipfile, mode = 'w', compression = zipfile.ZIP_DEFLATED) as zfile:
-        for file in os.listdir(target_path):
-            zfile.write('%s/%s'%(target_path, file))
+        for root, dirs, files in os.walk(target_path):
+            for file in files:
+                zfile.write(os.path.join(root, file))
+    if clean_target_path:
+        YES = input('Enter YES to confirm remove all files in the traget path %s\n'%target_path)
+        if YES == 'YES':
+            print('cleaned!')
+            import shutil
+            shutil.rmtree(target_path)
+        else:
+            print('Target not cleaned!')
+            pass
 
 def Hz2Mel(freq):
     # convert Hz to Mel

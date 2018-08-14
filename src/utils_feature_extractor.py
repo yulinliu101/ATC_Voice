@@ -2,10 +2,10 @@
 # @Author: Yulin Liu
 # @Date:   2018-08-13 15:55:21
 # @Last Modified by:   Yulin Liu
-# @Last Modified time: 2018-08-14 11:11:38
+# @Last Modified time: 2018-08-14 15:08:57
 
 import numpy as np
-from .utils import _energy_helper, Hz2Mel, Mel2Hz
+from utils import _energy_helper, Hz2Mel, Mel2Hz
 import scipy
 import scipy.signal
 # import matplotlib.pyplot as plt

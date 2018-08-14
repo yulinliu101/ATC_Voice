@@ -2,19 +2,23 @@
 # @Author: Yulin Liu
 # @Date:   2018-08-13 16:09:35
 # @Last Modified by:   Yulin Liu
-# @Last Modified time: 2018-08-14 12:22:19
+# @Last Modified time: 2018-08-14 15:20:13
 
 import numpy as np
-from .utils import baseline_time
-from .utils_data_loader import audio_data_loader
-from .utils_feature_extractor import AudioFeatures
-from .utils_VAD import voice_activity_detector
+from utils import baseline_time
+from utils_data_loader import audio_data_loader
+from utils_feature_extractor import AudioFeatures
+from utils_VAD import voice_activity_detector
 import zipfile
 import os
 from dateutil import parser
 import re
+import time
+from itertools import groupby, chain, count
+from operator import itemgetter
 
-def gather_info_matrix(file_list,
+def gather_info_matrix(root_dir,
+                       file_list,
                        channel,
                        dump_to_tmp = True,
                        verbose = False):
@@ -48,15 +52,15 @@ def gather_info_matrix(file_list,
         st = time.time()
         # filename = j.replace(path, '').replace('.mp3','')
         try:
-            sound_track, sample_rate, sound_length = audio_data_loader([filename])
-            FeatureClass = AudioFeatures.AudioFeatures(sound_track, 
-                                                       sample_rate, 
-                                                       sound_length,
-                                                       nperseg = 512,
-                                                       overlap_rate = 8, 
-                                                       nfft = 1024, 
-                                                       fbank_hfreq = None,
-                                                       pre_emphasis = True)
+            sound_track, sample_rate, sound_length = audio_data_loader([root_dir + filename])
+            FeatureClass = AudioFeatures(sound_track, 
+                                       sample_rate, 
+                                       sound_length,
+                                       nperseg = 512,
+                                       overlap_rate = 8, 
+                                       nfft = 1024, 
+                                       fbank_hfreq = None,
+                                       pre_emphasis = True)
             freqs, time_ins, Pxx = FeatureClass.stft(power_mode = 'PSD')
             energy  = FeatureClass.Energy(boundary = None)
             silence_seg, silence_seg_2d, idx_act = voice_activity_detector(sec_to_bin = FeatureClass.sec_to_bin, 
@@ -124,7 +128,7 @@ def gather_info_matrix(file_list,
                 ## dump file to a temporary folder
                 ###################################################
                 if dump_to_tmp:
-                    np.save('tmp/%s/%s.npy'%(channel, filename), info.T)
+                    np.save('tmp/%s/%s.npy'%(channel, filename[:-4]), info.T)
                 else:
                     pass
 
