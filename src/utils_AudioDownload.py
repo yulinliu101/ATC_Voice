@@ -15,12 +15,14 @@ import pandas as pd
 
 def rmd_small_file(size = 500):
 	for i in session.nlst():
-        if session.size(i) < 500:
-            try:
+        if session.size(i) < size:
+        	try:
                 session.delete(i)
             except Exception:
                 session.rmd(i)
             print(i + ' has been removed due to small size')
+        else:
+        	print('All audio files have been downloaded.')
 
 
 def audio_to_FTP(year = 2018,
