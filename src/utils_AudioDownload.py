@@ -36,6 +36,7 @@ def audio_to_FTP(year = 2018,
                  ftpfolder = 'VoiceData\\',
                  audiourl = 'http://archive.fmt2.liveatc.net/kjfk/',
                  verbose = False):
+    global session
     try:
         session = ftplib.FTP(ftpurl, username, password)
     except:
