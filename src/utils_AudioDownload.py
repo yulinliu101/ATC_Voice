@@ -2,7 +2,7 @@
 # @Author: Lu Dai, Yulin Liu
 # @Date:   2018-08-15 16:20:17
 # @Last Modified by:   Lu Dai
-# @Last Modified time: 2018-08-15 17:09:01
+# @Last Modified time: 2018-08-17 15:09:01
 
 import wget
 import calendar
@@ -13,34 +13,33 @@ import time
 import random
 import pandas as pd
 
-def rmd_small_file(size = 500):
-	for i in session.nlst():
-        if session.size(i) < size:
-        	try:
-                session.delete(i)
+def rmd_small_file(ftpobj, size = 500):
+    for i in ftpobj.nlst():
+        if ftpobj.size(i) < size:
+            try:
+                ftpobj.delete(i)
             except Exception:
-                session.rmd(i)
+                ftpobj.rmd(i)
             print(i + ' has been removed due to small size')
         else:
-        	print('All audio files have been downloaded.')
+            print(i + ' has been downloaded.')
 
 
 def audio_to_FTP(year = 2018,
-                month = 1,
-                day = 1,
-                channel = 'CAMRN',
-                airport = 'KJFK',
-                ftpurl = 'ftp.atac.com',
-                username = 'sn2018',
-                password = 'Teardr2p',
-                ftpfolder = 'VoiceData\\',
-                audiourl = 'http://archive.fmt2.liveatc.net/kjfk/',
-                verbose = False):
+                 month = 1,
+                 day = 1,
+                 channel = 'CAMRN',
+                 airport = 'KJFK',
+                 ftpurl = 'ftp.atac.com',
+                 username = 'sn2018',
+                 password = 'Teardr2p',
+                 ftpfolder = 'VoiceData\\',
+                 audiourl = 'http://archive.fmt2.liveatc.net/kjfk/',
+                 verbose = False):
     try:
         session = ftplib.FTP(ftpurl, username, password)
     except:
         print('Fail to access FTP')
-    
     session.cwd(ftpfolder + channel)
     date = str(year) + str(month).zfill(2) + str(day).zfill(2)
     try:
@@ -48,7 +47,8 @@ def audio_to_FTP(year = 2018,
     except:
         print(date + ' folder is already exsit.')
     session.cwd(date)
-    rmd_small_file(size = 500)
+    
+    rmd_small_file(session)
     for Period in range(24):
         for HalfHour in ['00','30']:
             if channel == 'Tower':
@@ -58,14 +58,14 @@ def audio_to_FTP(year = 2018,
             elif channel == 'Tower1239':
                 FileName = 'KJFK-Twr-1239-' + calendar.month_abbr[month] + '-' + '{:02d}'.format(day) + '-' + str(year) + '-' + '{:02d}'.format(Period) + HalfHour + 'Z.mp3'
             else:
-                FileName = 'KJFK-NY-channel-' + channel + '-' + calendar.month_abbr[month] + '-' + '{:02d}'.format(day) + '-' + str(year) + '-' + '{:02d}'.format(Period) + HalfHour + 'Z.mp3'
+                FileName = 'KJFK-NY-App-' + channel + '-' + calendar.month_abbr[month] + '-' + '{:02d}'.format(day) + '-' + str(year) + '-' + '{:02d}'.format(Period) + HalfHour + 'Z.mp3'
             url = audiourl + FileName
             if FileName in session.nlst():
                 pass
             else:
                 try:
                     # Check if the file exist, if so, skip, o/w. download
-                    # if not os.path.exists(FileName):
+                    # If not os.path.exist(FileName):
                     filename = wget.download(url)
                     one = open(filename, 'rb')
                     session.storbinary('STOR ' + filename, one)
@@ -75,5 +75,5 @@ def audio_to_FTP(year = 2018,
                         print(filename)
                 except:
                     print('File Skipped: %s'%FileName)
-    rmd_small_file()
-    session.quit()
+    rmd_small_file(session) #Re-check small files
+    # session.quit()
