@@ -2,7 +2,7 @@
 # @Author: Yulin Liu
 # @Date:   2018-08-13 14:23:44
 # @Last Modified by:   Yulin Liu
-# @Last Modified time: 2018-08-14 15:08:51
+# @Last Modified time: 2018-08-22 14:51:44
 
 import numpy as np
 import os
@@ -43,9 +43,9 @@ def audio_data_loader(file_list, verbose = True):
         pass
     return sound_track, sample_rate, sound_length
 
-def TTF_data_loader(file_list, airport = 'JFK'):
+def TTF_data_loader(root_dir, file_list, airport = 'JFK'):
 
-    ## valid_cp and cp_to_channel_dict are currently hard-coded, which could be further improved in the future
+    ## valid_cp and cp_to_channel_dict are currently hard-coded, which could be improved in the future
     valid_cp = ['CAMRN', 'STW', 'ESJAY', 'KEAVR','TINNI', 'OTPIF', '(NorthWest)', 'FALTY','HESIN', 
             'ROBER','EPARE', '(East)']
 
@@ -64,37 +64,35 @@ def TTF_data_loader(file_list, airport = 'JFK'):
 
     # load TTF data
     if len(file_list) == 1:
-        N90 = pd.read_csv(file_list[0], 
-                          usecols=[0, 2, 3, 4, 5, 6, 7, 16, 17, 22, 31, 32, 33, 34, 35, 36])
+        N90 = pd.read_csv(root_dir + '/' + file_list[0])
     else:
         N90 = []
         for file_name in file_list:
-            N90 += [pd.read_csv(file_name, 
-                                usecols=[0, 2, 3, 4, 5, 6, 7, 16, 17, 22, 31, 32, 33, 34, 35, 36])]
+            N90 += [pd.read_csv(root_dir + '/' + file_name)]
         N90 = pd.concat(N90)
 
     # Preprocessing N90
-    # Filter all flights into JFK
-    N90_jfk = N90.loc[N90.Airport == 'JFK'].reset_index(drop = True)
-    N90_jfk_topcp = N90_jfk.loc[N90_jfk.CornerPost.isin(valid_cp)].reset_index(drop = True)
-    N90_jfk_topcp['channel'] = N90_jfk_topcp.CornerPost.replace(cp_to_channel_dict)
+    # Filter all flights into arg "airport"
+    N90_jfk = N90.loc[N90.AIRPORT == airport].reset_index(drop = True)
+    N90_jfk_topcp = N90_jfk.loc[N90_jfk.CORNER_POST.isin(valid_cp)].reset_index(drop = True)
+    N90_jfk_topcp['channel'] = N90_jfk_topcp.CORNER_POST.replace(cp_to_channel_dict)
 
-    N90_jfk_topcp['Date(UTC) '] = pd.to_datetime(N90_jfk_topcp['Date(UTC) '], 
+    N90_jfk_topcp['DATE_UTC'] = pd.to_datetime(N90_jfk_topcp['DATE_UTC'], 
                                              infer_datetime_format=True,
                                              errors = 'coerce')
-    N90_jfk_topcp['Event Date/Time(UTC)'] = pd.to_datetime(N90_jfk_topcp['Event Date/Time(UTC)'], 
+    N90_jfk_topcp['EVENT_DATE_TIME_UTC'] = pd.to_datetime(N90_jfk_topcp['EVENT_DATE_TIME_UTC'], 
                                                            infer_datetime_format=True, 
                                                            errors = 'coerce')
-    N90_jfk_topcp['CPPassTime(UTC)'] = pd.to_datetime(N90_jfk_topcp['CPPassTime(UTC)'], 
+    N90_jfk_topcp['CORNER_POST_PASS_TIME_UTC'] = pd.to_datetime(N90_jfk_topcp['CORNER_POST_PASS_TIME_UTC'], 
                                                       infer_datetime_format=True, 
                                                       errors = 'coerce')
-    N90_jfk_topcp['Stop Date and Time(UTC)'] = pd.to_datetime(N90_jfk_topcp['Stop Date and Time(UTC)'], 
+    N90_jfk_topcp['STOP_DATE_AND_TIME_UTC'] = pd.to_datetime(N90_jfk_topcp['STOP_DATE_AND_TIME_UTC'], 
                                                               infer_datetime_format=True, 
                                                               errors = 'coerce')
     N90_jfk_topcp = N90_jfk_topcp.dropna().reset_index(drop = True)
 
-    N90_jfk_topcp['evtime_elapsed'] = (N90_jfk_topcp['Event Date/Time(UTC)'] - baseline_time).apply(lambda x: x.total_seconds())
-    N90_jfk_topcp['cptime_elapsed'] = (N90_jfk_topcp['CPPassTime(UTC)'] - baseline_time).apply(lambda x: x.total_seconds())
-    N90_jfk_topcp['stptime_elapsed'] = (N90_jfk_topcp['Stop Date and Time(UTC)'] - baseline_time).apply(lambda x: x.total_seconds())
+    N90_jfk_topcp['evtime_elapsed'] = (N90_jfk_topcp['EVENT_DATE_TIME_UTC'] - baseline_time).apply(lambda x: x.total_seconds())
+    N90_jfk_topcp['cptime_elapsed'] = (N90_jfk_topcp['CORNER_POST_PASS_TIME_UTC'] - baseline_time).apply(lambda x: x.total_seconds())
+    N90_jfk_topcp['stptime_elapsed'] = (N90_jfk_topcp['STOP_DATE_AND_TIME_UTC'] - baseline_time).apply(lambda x: x.total_seconds())
 
     return N90_jfk_topcp, N90

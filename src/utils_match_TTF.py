@@ -2,12 +2,17 @@
 # @Author: Yulin Liu
 # @Date:   2018-08-14 12:23:01
 # @Last Modified by:   Yulin Liu
-# @Last Modified time: 2018-08-14 12:23:28
+# @Last Modified time: 2018-08-23 15:28:19
 
 import numpy as np
 import pandas as pd
 
-def agument_voice_feature(data_val_array, camrn_info, rober_info, twr_info):
+def get_TTF_array_from_df(TTF_df):
+    TTF_df['Index'] = TTF_df.index.values
+    data_val_array = TTF_df[['Index','evtime_elapsed', 'cptime_elapsed', 'stptime_elapsed', 'channel']].values
+    return data_val_array
+
+def augment_voice_feature(data_val_array, camrn_info, rober_info, twr_info):
     '''
     data_val_array should be a numpy array with 5 columns:
     0| index to match back to pandas df
@@ -54,6 +59,25 @@ def agument_voice_feature(data_val_array, camrn_info, rober_info, twr_info):
                               cp_energy_25q_of_mean, 
                               cp_energy_25q_of_90q, 
                               twr_energy_25q_of_mean, 
-                              twr_energy_25q_of_90q]).T
+                              twr_energy_25q_of_90q], dtype = np.float32).T
     
     return feature_space
+
+def merge_with_original_TTF(processed_TTF, original_TTF, feature_space):
+    df_feature_space = pd.DataFrame(data = feature_space, columns=['Index', 
+                                                                   'cp_energy_25q_of_mean', 
+                                                                   'cp_energy_25q_of_90q', 
+                                                                   'twr_energy_25q_of_mean', 
+                                                                   'twr_energy_25q_of_90q'])
+    tmp_df = processed_TTF[['Index', 'AIRCRAFT_ID', 'CKEY']].merge(df_feature_space, left_on='Index', right_on='Index', how = 'inner')
+    output_df = original_TTF.merge(tmp_df[['AIRCRAFT_ID', 
+                                           'CKEY', 
+                                           'cp_energy_25q_of_mean', 
+                                           'cp_energy_25q_of_90q', 
+                                           'twr_energy_25q_of_mean', 
+                                           'twr_energy_25q_of_90q']], on = ['AIRCRAFT_ID', 'CKEY'], how = 'left')
+    return output_df
+
+def dump_to_csv(path_to_csv, df_to_dump):
+    df_to_dump.to_csv(path_to_csv, index = False)
+

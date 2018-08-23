@@ -2,9 +2,10 @@
 # @Author: Yulin Liu
 # @Date:   2018-08-13 14:46:06
 # @Last Modified by:   Yulin Liu
-# @Last Modified time: 2018-08-14 16:03:57
+# @Last Modified time: 2018-08-23 15:54:34
 
 import calendar
+import datetime
 from dateutil import parser
 import numpy as np
 
@@ -15,51 +16,72 @@ import os
 """
 useful functions
 """
+
+def TTF_file_header_collector(year, month, start_day, end_day):
+    ttf_fname_list = []
+    for i in range(start_day, end_day + 1):
+        ttf_fname_list += ['SVRSCSV_N90$TURNTOFINAL$_%d%s%s-%d%s%s_ALL'%(year, str(month).zfill(2), str(i).zfill(2), year, str(month).zfill(2), str(i).zfill(2))]
+    return ttf_fname_list
+
 def audio_file_header_collector(year = 2018, 
-                          month = 1, 
-                          day = 1, 
-                          start_hour = 0, 
-                          end_hour = 23, 
-                          channel = 'Twr', 
-                          airport = 'KJFK'):
+                              month = 1, 
+                              day = 1, 
+                              start_hour = 0, 
+                              end_hour = 23, 
+                              channel = 'Twr', 
+                              airport = 'KJFK',
+                              nextday_end_hour = False):
     """
     start_hour and end hour is in [0, 23]
     all time in UTC
     channel selection: 'CAMRN', 'ROBER', 'Twr'
     """
-    if channel == 'Twr' or channel == 'Tower':
-        header = '%s-%s-%s-%s-%d-'%(airport, 'Twr', calendar.month_abbr[month], str(day).zfill(2), year)
-    elif channel == 'ROBER' or channel == 'CAMRN':
-        header = '%s-NY-App-%s-%s-%s-%d-'%(airport, channel, calendar.month_abbr[month], str(day).zfill(2), year)
+    start_time = parser.parse('%d/%d/%d %d:00:00'%(month, day, year, start_hour))
+    if nextday_end_hour:
+        end_time = parser.parse('%d/%d/%d %d:00:00'%(month, day, year, end_hour)) + datetime.timedelta(days = 1)
     else:
-        raise ValueError('channel not found!')
+        end_time = parser.parse('%d/%d/%d %d:00:00'%(month, day, year, end_hour))
 
     footer = 'Z.mp3'
     file_name_list = []
-    for i in range(start_hour, end_hour + 1):
-        file_name_list += [header + str(i).zfill(2) + '00' + footer,
-                           header + str(i).zfill(2) + '30' + footer]
+    for i in range(int((end_time - start_time).total_seconds()/3600) + 1):
+        tmp_time = start_time + datetime.timedelta(hours = i)
+        if channel == 'Twr' or channel == 'Tower':
+            header = 'Tower/%s/%s-%s-'%(tmp_time.strftime('%Y%m%d') , airport, 'Twr')
+        elif channel == 'ROBER' or channel == 'CAMRN':
+            header = '%s/%s/%s-NY-App-%s-'%(channel, tmp_time.strftime('%Y%m%d'), airport, channel)
+        else:
+            raise ValueError('channel %s not found!'%channel)
+        file_name_list += [header + tmp_time.strftime('%b-%d-%Y-%H') + '00' + footer,
+                           header + tmp_time.strftime('%b-%d-%Y-%H') + '30' + footer]
 
     return file_name_list
 
 def tmp_file_zipper(target_path, 
                     dump_to_zipfile,
-                    clean_target_path = True):
+                    clean_target_path = True,
+                    brutal = True):
 
     # TODO: Add entire target_path to zipfile; Add remove dir function
     with zipfile.ZipFile(dump_to_zipfile, mode = 'w', compression = zipfile.ZIP_DEFLATED) as zfile:
         for root, dirs, files in os.walk(target_path):
             for file in files:
                 zfile.write(os.path.join(root, file))
-    if clean_target_path:
-        YES = input('Enter YES to confirm remove all files in the traget path %s\n'%target_path)
-        if YES == 'YES':
-            print('cleaned!')
+    if brutal:
+        import shutil
+        print('brutal cleaned all tmp files!')
+        shutil.rmtree(target_path, ignore_errors=True)
+    else:
+        if clean_target_path:
             import shutil
-            shutil.rmtree(target_path)
-        else:
-            print('Target not cleaned!')
-            pass
+            YES = input('Enter YES to confirm remove all files in the traget path %s\n'%target_path)
+            if YES == 'YES':
+                print('cleaned!')
+                import shutil
+                shutil.rmtree(target_path, ignore_errors=True)
+            else:
+                print('Target not cleaned!')
+                pass
 
 def Hz2Mel(freq):
     # convert Hz to Mel

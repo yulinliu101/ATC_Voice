@@ -2,7 +2,7 @@
 # @Author: Yulin Liu
 # @Date:   2018-08-13 16:09:35
 # @Last Modified by:   Yulin Liu
-# @Last Modified time: 2018-08-14 15:20:13
+# @Last Modified time: 2018-08-23 15:14:09
 
 import numpy as np
 from utils import baseline_time
@@ -36,11 +36,7 @@ def gather_info_matrix(root_dir,
     
     if dump_to_tmp:
         try:
-            os.mkdir('tmp')
-        except:
-            pass
-        try:
-            os.mkdir('tmp/%s'%channel)
+            os.makedirs('tmp/%s'%channel)
         except:
             pass
     else:
@@ -128,7 +124,7 @@ def gather_info_matrix(root_dir,
                 ## dump file to a temporary folder
                 ###################################################
                 if dump_to_tmp:
-                    np.save('tmp/%s/%s.npy'%(channel, filename[:-4]), info.T)
+                    np.save('tmp/%s/%s.npy'%(channel, filename.split('/')[-1][:-4]), info.T)
                 else:
                     pass
 
@@ -140,6 +136,7 @@ def gather_info_matrix(root_dir,
                     print('********************************************************************')
         except IndexError:
             print("%s is not available."%filename)
+            return
     return info.T
 
 
