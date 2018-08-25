@@ -33,7 +33,7 @@ def Audio_Download(year = 2018,
 				 ftpfolder = 'VoiceData\\',
 				 audiourl = 'http://archive.fmt2.liveatc.net/kjfk/',
 				 extday_end_hour = True,
-				 local = False,
+				 local = True,
 				 FTP = True,
 				 verbose = False):
 
