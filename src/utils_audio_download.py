@@ -10,7 +10,7 @@ from utils_filestool import ftp_small_file, local_small_file, mkdir_chdir
 
 def Audio_to_Local(year = 2018,
 				 month = 8,
-				 day = 24,
+				 day = 23,
 				 start_hour = 5,
 				 end_hour = 4,
 				 channel = "CAMRN",
@@ -51,7 +51,7 @@ def Audio_to_Local(year = 2018,
 
 def Audio_to_FTP(year = 2018,
 				 month = 8,
-				 day = 24,
+				 day = 23,
 				 start_hour = 5,
 				 end_hour = 4,
 				 channel = "CAMRN",
