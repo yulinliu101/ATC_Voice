@@ -1,25 +1,55 @@
 import wget
-import calendar
 import os
-import argparse
 import ftplib
 import time
 import random
 import shutil
 from utils import audio_file_header_collector
+from utils_filestool import ftp_small_file, local_small_file, mkdir_chdir
 
-def rmd_small_file(ftpobj, size = 500):
-    for i in ftpobj.nlst():
-        if ftpobj.size(i) < size:
-            try:
-                ftpobj.delete(i)
-            except Exception:
-                ftpobj.rmd(i)
-            print(i + ' has been removed due to small size')
-        else:
-            print(i + ' has been downloaded.')
 
-def Audio_Download(year = 2018,
+def Audio_to_Local(year = 2018,
+				 month = 8,
+				 day = 24,
+				 start_hour = 5,
+				 end_hour = 4,
+				 channel = "CAMRN",
+				 airport = 'KJFK',
+				 small_file_size = 500,
+				 localfolder = 'ATCAudio/',
+				 audiourl = 'http://archive.fmt2.liveatc.net/kjfk/',
+				 nextday_end_hour = True,
+				 verbose = False):
+	parent_path = os.getcwd()
+
+	mkdir_chdir(localfolder)
+	mkdir_chdir(channel)
+	filenames = audio_file_header_collector(year = year, month = month, day = day, 
+                                        start_hour = start_hour, end_hour = end_hour,channel = channel,
+                                        airport = airport, nextday_end_hour = nextday_end_hour)
+	for i in filenames:
+		date = i.split(channel + '/')[1][:8]
+		FileName = i.split(date + '/')[1]
+		url = audiourl + FileName
+		mkdir_chdir(date)
+
+		# Check small size files
+		local_small_file(os.getcwd(), small_file_size)
+
+		# Check file exists
+		if FileName in os.listdir():
+			pass
+		else:
+			try:
+				filename = wget.download(url, out = os.getcwd())
+			except:
+				print('File Skipped: %s'%FileName)
+		if verbose:
+			print(FileName)
+		os.chdir("..")
+	os.chdir(parent_path)
+
+def Audio_to_FTP(year = 2018,
 				 month = 8,
 				 day = 24,
 				 start_hour = 5,
@@ -30,26 +60,23 @@ def Audio_Download(year = 2018,
 				 ftpurl = 'ftp.atac.com',
 				 username = 'sn2018',
 				 password = 'Teardr2p',
-				 ftpfolder = 'VoiceData\\',
+				 ftpfolder = 'VoiceData/',
+				 localfolder = 'ATCAudio/',
 				 audiourl = 'http://archive.fmt2.liveatc.net/kjfk/',
-				 extday_end_hour = True,
-				 local = True,
-				 FTP = True,
+				 nextday_end_hour = True,
 				 verbose = False):
 
+	global session
 	parent_path = os.getcwd()
 
-	try:
-		os.mkdir("ATCAudio")
-	except:
-		os.chdir("ATCAudio")
+	mkdir_chdir(localfolder)
+	mkdir_chdir(channel)
 
-	if FTP:
-		try:
-			session = ftplib.FTP(ftpurl, username, password)
-		except:
-			print('Fail to access FTP cite.')
-		session.cwd(ftpfolder + channel)
+	try:
+		session = ftplib.FTP(ftpurl, username, password)
+	except:
+		print('Fail to access FTP cite.')
+	session.cwd(ftpfolder + channel)
 
 	filenames = audio_file_header_collector(year = year, month = month, day = day, 
                                         start_hour = start_hour, end_hour = end_hour,channel = channel,
@@ -58,57 +85,38 @@ def Audio_Download(year = 2018,
 		date = i.split(channel + '/')[1][:8]
 		FileName = i.split(date + '/')[1]
 		url = audiourl + FileName
-
-		try:
-			os.mkdir(channel)
-		except:
-			os.chdir(channel)
-		try:
-			os.mkdir(date)
-		except:
-			os.chdir(date)
+		mkdir_chdir(date)
 
 		# Check small size files
-		try:
-			for i in os.listdir():
-				if os.path.getsize(i) < small_file_size:
-					os.remove(i)
-		except:
-			pass
+		local_small_file(os.getcwd(), small_file_size)
+
+		# Check file exists
 		if FileName in os.listdir():
 			os.remove(FileName)
 
 		filename = wget.download(url, out = os.getcwd())
 
-		if FTP:
-			try:
-				session.mkd(date)
-			except:
-				session.cwd(date)
+		try:
+			session.mkd(date)
+		except:
+			pass
+		session.cwd(date)
 
-			# Check small size files
-			try:
-				rmd_small_file(session, size = small_file_size)
-			except:
-				pass
+		# Check small size files
+		ftp_small_file(session, size = small_file_size)
 
-			if FileName in session.nlst():
-				pass
-			else:
-				one = open(filename, 'rb')
-				session.storbinary('STOR ' + FileName, one)
-				one.close()
-				time.sleep(random.randint(1,3))
-				# session.quit()
+		if FileName in session.nlst():
+			pass
+		else:
+			one = open(filename, 'rb')
+			session.storbinary('STOR ' + FileName, one)
+			one.close()
+			time.sleep(random.randint(1,3))
+			# session.quit()
 
 		if verbose:
 			print(FileName)
 
-		if not local:
-			shutil.rmtree(parent_path + '/ATCAudio')
-
-
-
-		
-
-
+		os.chdir("..")
+		session.cwd("..")
+	os.chdir(parent_path)
