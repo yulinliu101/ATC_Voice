@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+# @Author: Lu Dai
+# @Date:   2018-08-08 15:02:19
+# @Last Modified by:   Lu Dai
+# @Last Modified time: 2018-08-25 15:02:45
+
 import wget
 import os
 import ftplib
