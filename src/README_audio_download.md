@@ -9,12 +9,10 @@
 
 This project is designed to download ATC voice data from https://www.liveatc.net/ and store in the local file system or upload to a FTP site. Data will be mounted under specific directory paths for later analysis.
 
-work with Air Traffic Control voice data in mp3 format. You can:
-
-- Download ATC voice data from website (e.g. LiveATC) and upload to FTP cite
+With ATC voice data, you can:
 - Pre-process audio data (.mp3) and extract energy features
 - Voice Activity Detection (VAD)
-- Generate voice information matrix according to the result of audio feature extraction and voice activity detection
+- Generate voice information matrix according to the result of audio feature extraction and VAD
 - Process N90 TTF data and match with voice information matrix
 
 ## Getting Started
@@ -51,21 +49,21 @@ The ATC voice data are the recordings of controller-pilot ATC communications. Li
 
 For the purpose of overnight processing, this code stored the voice data in the following directory tree, either in the local file system or on the FTP site:
 ```
-parent_dir/VoiceData/											# directory to save voice data
-├── CAMRN 														# Channel folder: CAMRN
-│   ├── 20180801                                      			# Daily folder: 08/01/2018
-│	│		├── KJFK-NY-App-CAMRN-Aug-01-2018-0000Z.mp3 		# Voice data: 08/01/2018 00:00:00 - 00:30:00 (UTC)
-│	│		├── KJFK-NY-App-CAMRN-Aug-01-2018-0030Z.mp3 		# Voice data: 08/01/2018 00:30:00 - 01:00:00 (UTC)
-│	│		├── KJFK-NY-App-CAMRN-Aug-01-2018-0100Z.mp3 		# Voice data: 08/01/2018 01:00:00 - 01:30:00 (UTC)
-│	│		├── KJFK-NY-App-CAMRN-Aug-01-2018-0130Z.mp3 		# Voice data: 08/01/2018 01:30:00 - 02:00:00 (UTC)
-│	│		├── ......
-│	│		├── KJFK-NY-App-CAMRN-Aug-01-2018-2300Z.mp3 		# Voice data: 08/01/2018 23:00:00 - 23:30:00 (UTC)
-│	│		└── KJFK-NY-App-CAMRN-Aug-01-2018-2330Z.mp3 		# Voice data: 08/01/2018 23:30:00 - 00:00:00 (UTC)
-│   ├── 20180802       											# Daily folder: 08/02/2018
-│   └── 20180803  												# Daily folder: 08/03/2018
-├── ROBER              		  									# Channel folder: ROBER
-├── Final             											# Channel folder: Final
-└── Tower  														# Channel folder: Tower
+parent_dir/VoiceData/											              # directory to save voice data
+├── CAMRN 														                  # Channel folder: CAMRN
+│   ├── 20180801                                      	# Daily folder: 08/01/2018
+│	  │		├── KJFK-NY-App-CAMRN-Aug-01-2018-0000Z.mp3 		# Voice data: 08/01/2018 00:00:00 - 00:30:00 (UTC)
+│	  │		├── KJFK-NY-App-CAMRN-Aug-01-2018-0030Z.mp3 		# Voice data: 08/01/2018 00:30:00 - 01:00:00 (UTC)
+│	  │		├── KJFK-NY-App-CAMRN-Aug-01-2018-0100Z.mp3 		# Voice data: 08/01/2018 01:00:00 - 01:30:00 (UTC)
+│	  │		├── KJFK-NY-App-CAMRN-Aug-01-2018-0130Z.mp3 		# Voice data: 08/01/2018 01:30:00 - 02:00:00 (UTC)
+│	  │		├── ......
+│	  │		├── KJFK-NY-App-CAMRN-Aug-01-2018-2300Z.mp3 		# Voice data: 08/01/2018 23:00:00 - 23:30:00 (UTC)
+│	  │		└── KJFK-NY-App-CAMRN-Aug-01-2018-2330Z.mp3 		# Voice data: 08/01/2018 23:30:00 - 00:00:00 (UTC)
+│   ├── 20180802       											            # Daily folder: 08/02/2018
+│   └── 20180803  												              # Daily folder: 08/03/2018
+├── ROBER              		  									          # Channel folder: ROBER
+├── Final             											            # Channel folder: Final
+└── Tower  														                  # Channel folder: Tower
 
 ```
 
@@ -160,25 +158,25 @@ This script is designed for overnight processing on a daily basis. However, user
 1. Using loops to execute commands in one terminal:
 ```bash
 for i in {1..5}; do \
-	python run_audio_download.py --month 8 --day $i --start_hour 5 --end_hour 4 --nextday_end_hour True --channel CAMRN --mode local; \
+	python run_audio_download.py --month 8 --day $i --start_hour 5 --end_hour 4 --channel CAMRN --mode local; \
 done
 ```
 
 2. Or opening five terminals (up to the number of cores your computer has):
 ```bash
-python run_audio_download.py --month 8 --day 1 --start_hour 5 --end_hour 4  --nextday_end_hour True --channel CAMRN --mode local
+python run_audio_download.py --month 8 --day 1 --start_hour 5 --end_hour 4 --channel CAMRN --mode local
 ```
 ```bash
-python run_audio_download.py --month 8 --day 2 --start_hour 5 --end_hour 4  --nextday_end_hour True --channel CAMRN --mode local
+python run_audio_download.py --month 8 --day 2 --start_hour 5 --end_hour 4 --channel CAMRN --mode local
 ```
 ```bash
-python run_audio_download.py --month 8 --day 3 --start_hour 5 --end_hour 4  --nextday_end_hour True --channel CAMRN --mode local
+python run_audio_download.py --month 8 --day 3 --start_hour 5 --end_hour 4 --channel CAMRN --mode local
 ```
 ```bash
-python run_audio_download.py --month 8 --day 4 --start_hour 5 --end_hour 4  --nextday_end_hour True --channel CAMRN --mode local
+python run_audio_download.py --month 8 --day 4 --start_hour 5 --end_hour 4 --channel CAMRN --mode local
 ```
 ```bash
-python run_audio_download.py --month 8 --day 5 --start_hour 5 --end_hour 4  --nextday_end_hour True --channel CAMRN --mode local
+python run_audio_download.py --month 8 --day 5 --start_hour 5 --end_hour 4 --channel CAMRN --mode local
 ```
 
 Both methods will automatically download the *CAMRN* voice recordings (.mp3) in *KJFK* airport from *08/01/2018 5:00:00 UTC* to *08/06/2018 5:00:00 UTC* and stored in the local computer. The second way is recommended as long as the number of terminals do not exceed your computer cores.
