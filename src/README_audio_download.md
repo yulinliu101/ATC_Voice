@@ -52,13 +52,13 @@ For the purpose of overnight processing, this code stored the voice data in the 
 parent_dir/VoiceData/											              # directory to save voice data
 ├── CAMRN 														                  # Channel folder: CAMRN
 │   ├── 20180801                                      	# Daily folder: 08/01/2018
-│	  │		├── KJFK-NY-App-CAMRN-Aug-01-2018-0000Z.mp3 		# Voice data: 08/01/2018 00:00:00 - 00:30:00 (UTC)
-│	  │		├── KJFK-NY-App-CAMRN-Aug-01-2018-0030Z.mp3 		# Voice data: 08/01/2018 00:30:00 - 01:00:00 (UTC)
-│	  │		├── KJFK-NY-App-CAMRN-Aug-01-2018-0100Z.mp3 		# Voice data: 08/01/2018 01:00:00 - 01:30:00 (UTC)
-│	  │		├── KJFK-NY-App-CAMRN-Aug-01-2018-0130Z.mp3 		# Voice data: 08/01/2018 01:30:00 - 02:00:00 (UTC)
-│	  │		├── ......
-│	  │		├── KJFK-NY-App-CAMRN-Aug-01-2018-2300Z.mp3 		# Voice data: 08/01/2018 23:00:00 - 23:30:00 (UTC)
-│	  │		└── KJFK-NY-App-CAMRN-Aug-01-2018-2330Z.mp3 		# Voice data: 08/01/2018 23:30:00 - 00:00:00 (UTC)
+│	│		├── KJFK-NY-App-CAMRN-Aug-01-2018-0000Z.mp3 		# Voice data: 08/01/2018 00:00:00 - 00:30:00 (UTC)
+│	│		├── KJFK-NY-App-CAMRN-Aug-01-2018-0030Z.mp3 		# Voice data: 08/01/2018 00:30:00 - 01:00:00 (UTC)
+│	│		├── KJFK-NY-App-CAMRN-Aug-01-2018-0100Z.mp3 		# Voice data: 08/01/2018 01:00:00 - 01:30:00 (UTC)
+│	│		├── KJFK-NY-App-CAMRN-Aug-01-2018-0130Z.mp3 		# Voice data: 08/01/2018 01:30:00 - 02:00:00 (UTC)
+│	│		├── ......
+│	│		├── KJFK-NY-App-CAMRN-Aug-01-2018-2300Z.mp3 		# Voice data: 08/01/2018 23:00:00 - 23:30:00 (UTC)
+│	│		└── KJFK-NY-App-CAMRN-Aug-01-2018-2330Z.mp3 		# Voice data: 08/01/2018 23:30:00 - 00:00:00 (UTC)
 │   ├── 20180802       											            # Daily folder: 08/02/2018
 │   └── 20180803  												              # Daily folder: 08/03/2018
 ├── ROBER              		  									          # Channel folder: ROBER
