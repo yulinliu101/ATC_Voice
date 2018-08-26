@@ -75,7 +75,7 @@ def Audio_to_FTP(year = 2018,
 	try:
 		session = ftplib.FTP(ftpurl, username, password)
 	except:
-		print('Fail to access FTP cite.')
+		print('Fail to access FTP site.')
 	session.cwd(ftpfolder + channel)
 
 	filenames = audio_file_header_collector(year = year, month = month, day = day, 
