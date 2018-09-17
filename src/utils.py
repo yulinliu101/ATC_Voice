@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: Yulin Liu
 # @Date:   2018-08-13 14:46:06
-# @Last Modified by:   Lu Dai
-# @Last Modified time: 2018-08-26 09:40:23
+# @Last Modified by:   Yulin Liu
+# @Last Modified time: 2018-08-24 16:31:48
 
 import calendar
 import datetime
@@ -48,7 +48,7 @@ def audio_file_header_collector(year = 2018,
         tmp_time = start_time + datetime.timedelta(hours = i)
         if channel == 'Twr' or channel == 'Tower':
             header = 'Tower/%s/%s-%s-'%(tmp_time.strftime('%Y%m%d') , airport, 'Twr')
-        elif channel == 'ROBER' or channel == 'CAMRN' or channel == 'Final':
+        elif channel == 'ROBER' or channel == 'CAMRN':
             header = '%s/%s/%s-NY-App-%s-'%(channel, tmp_time.strftime('%Y%m%d'), airport, channel)
         else:
             raise ValueError('channel %s not found!'%channel)
@@ -168,6 +168,7 @@ def _energy_helper(x,
     return time, result
 
 from itertools import groupby, count
+
 def combine_to_range(power, power_threshold, sec_to_bin, silence_sec = 0.5):
     # power is the matrix produced by specgram
     # power_threshold usually is 0

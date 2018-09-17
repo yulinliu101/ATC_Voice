@@ -2,16 +2,13 @@
 # @Author: Yulin Liu
 # @Date:   2018-08-14 14:02:44
 # @Last Modified by:   Yulin Liu
-# @Last Modified time: 2018-08-23 16:02:45
+# @Last Modified time: 2018-09-04 15:53:01
 
 # to run in console
 
 """
 How this works:
-python run_match_program.py --year 2018 --month 8 --day 18 --start_hour 5 --end_hour 5 --next_day True \
-                            --root_dir_audio debugger/VoiceData/ --root_dir_ttf debugger/CurrentData/ \
-                            --dir_to_audio_feature debugger/VoiceFeature/
-                            --dir_to_processed_ttf debugger/NewTTF/
+python run_match_program.py --year 2018 --month 8 --day 18 --start_hour 5 --end_hour 5 --next_day True --root_dir_audio debugger/VoiceData/ --root_dir_ttf debugger/CurrentData/ --dir_to_audio_feature debugger/VoiceFeature/ --dir_to_processed_ttf debugger/NewTTF/
 """
 
 
@@ -76,31 +73,31 @@ if __name__ == '__main__':
         print('=============================================================================\n')
 
         camrn_file_name_list = audio_file_header_collector(year = year, 
-                                                          month = month, 
-                                                          day = day, 
-                                                          start_hour = start_hour, 
-                                                          end_hour = end_hour, 
-                                                          channel = 'CAMRN', 
-                                                          airport = 'KJFK',
-                                                          nextday_end_hour = next_day)       
+                                                           month = month, 
+                                                           day = day, 
+                                                           start_hour = start_hour, 
+                                                           end_hour = end_hour, 
+                                                           channel = 'CAMRN', 
+                                                           airport = 'KJFK',
+                                                           nextday_end_hour = next_day)       
 
         rober_file_name_list = audio_file_header_collector(year = year, 
-                                                          month = month, 
-                                                          day = day, 
-                                                          start_hour = start_hour, 
-                                                          end_hour = end_hour, 
-                                                          channel = 'ROBER', 
-                                                          airport = 'KJFK',
-                                                          nextday_end_hour = next_day)
+                                                           month = month, 
+                                                           day = day, 
+                                                           start_hour = start_hour, 
+                                                           end_hour = end_hour, 
+                                                           channel = 'ROBER', 
+                                                           airport = 'KJFK',
+                                                           nextday_end_hour = next_day)
         
         tower_file_name_list = audio_file_header_collector(year = year, 
-                                                          month = month, 
-                                                          day = day, 
-                                                          start_hour = start_hour, 
-                                                          end_hour = end_hour, 
-                                                          channel = 'Twr', 
-                                                          airport = 'KJFK',
-                                                          nextday_end_hour = next_day)
+                                                           month = month, 
+                                                           day = day, 
+                                                           start_hour = start_hour, 
+                                                           end_hour = end_hour, 
+                                                           channel = 'Twr', 
+                                                           airport = 'KJFK',
+                                                           nextday_end_hour = next_day)
 
         _ = gather_info_matrix(root_dir = root_dir_audio,
                                file_list = rober_file_name_list,

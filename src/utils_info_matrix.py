@@ -2,7 +2,7 @@
 # @Author: Yulin Liu
 # @Date:   2018-08-13 16:09:35
 # @Last Modified by:   Yulin Liu
-# @Last Modified time: 2018-08-23 15:14:09
+# @Last Modified time: 2018-09-04 17:39:57
 
 import numpy as np
 from utils import baseline_time
@@ -167,7 +167,7 @@ def load_channel_features(file_pointer, channel = 'CAMRN'):
     max_len = 0
     # for fname in file_names:
     for fname in pointer_file_names.keys():
-        if channel in fname:
+        if 'KJFK-NY-App-%s'%channel in fname or 'KJFK-%s'%channel in fname:
             info_matrix = pointer_file_names[fname][:1800, :]
             if info_matrix.shape[0] != 1800:
                 pass
@@ -191,3 +191,20 @@ def load_channel_features(file_pointer, channel = 'CAMRN'):
     
     return info_matrices
 
+    # lbda = np.array([N.shape[0] for N in new_active_index])/30/60 # N/sec
+    # lbda = []
+    # active_dur = []
+    # j = 0
+    # for N in new_active_index:
+    #     j += 1
+    #     lbda.append(N.shape[0]/30/60) # N/sec
+    #     try:
+    #         active_dur += ((N[:, 1] - N[:, 0])/info_matrices[0, 0, 7]).tolist() # sec
+    #     except:
+    #         pass
+    # lbda = np.array(lbda)
+    # active_dur = np.array(active_dur)
+    # active_dur = active_dur[np.where(~np.isnan(active_dur))]
+    # mu = np.mean(active_dur) # sec
+    # print(mu)
+    # print(np.std(active_dur))
