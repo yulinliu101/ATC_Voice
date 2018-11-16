@@ -2,7 +2,7 @@
 # @Author: Yulin Liu
 # @Date:   2018-08-13 16:09:35
 # @Last Modified by:   Yulin Liu
-# @Last Modified time: 2018-09-04 17:39:57
+# @Last Modified time: 2018-11-16 14:18:15
 
 import numpy as np
 from utils import baseline_time
@@ -136,7 +136,7 @@ def gather_info_matrix(root_dir,
                     print('********************************************************************')
         except IndexError:
             print("%s is not available."%filename)
-            return
+            pass
     return info.T
 
 

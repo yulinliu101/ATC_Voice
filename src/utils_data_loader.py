@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: Yulin Liu
 # @Date:   2018-08-13 14:23:44
-# @Last Modified by:   Yulin Liu
-# @Last Modified time: 2018-08-22 14:51:44
+# @Last Modified by:   Lu Dai
+# @Last Modified time: 2018-09-17 15:50:44
 
 import numpy as np
 import os
@@ -43,7 +43,7 @@ def audio_data_loader(file_list, verbose = True):
         pass
     return sound_track, sample_rate, sound_length
 
-def TTF_data_loader(root_dir, file_list, airport = 'JFK'):
+def TTF_data_loader(root_dir, file_list, airport = 'JFK', compression = True):
 
     ## valid_cp and cp_to_channel_dict are currently hard-coded, which could be improved in the future
     valid_cp = ['CAMRN', 'STW', 'ESJAY', 'KEAVR','TINNI', 'OTPIF', '(NorthWest)', 'FALTY','HESIN', 
@@ -63,13 +63,23 @@ def TTF_data_loader(root_dir, file_list, airport = 'JFK'):
                           '(East)': 'ROBER'}
 
     # load TTF data
-    if len(file_list) == 1:
-        N90 = pd.read_csv(root_dir + '/' + file_list[0])
-    else:
+    if compression:
+      if len(file_list) == 1:
+        N90 = pd.read_csv(root_dir + '/' + file_list[0] + '.gz', 
+                 compression='gzip', header=0, sep=',', quotechar='"')
+      else:
         N90 = []
         for file_name in file_list:
-            N90 += [pd.read_csv(root_dir + '/' + file_name)]
+          N90 += [pd.read_csv(root_dir + '/' + file_name + '.gz', compression='gzip', header=0, sep=',', quotechar='"')]
         N90 = pd.concat(N90)
+    else:
+      if len(file_list) == 1:
+          N90 = pd.read_csv(root_dir + '/' + file_list[0])
+      else:
+          N90 = []
+          for file_name in file_list:
+              N90 += [pd.read_csv(root_dir + '/' + file_name)]
+          N90 = pd.concat(N90)
 
     # Preprocessing N90
     # Filter all flights into arg "airport"
